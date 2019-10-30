@@ -149,6 +149,17 @@ class BaseBarHelper:
 
     @staticmethod
     def create_in_day_date_time_slice(instrument_manager, instrument_id, begin_time, end_time, interval, bar_type, *instrument_ids):
+        """
+
+        :param instrument_manager:
+        :param instrument_id:
+        :param begin_time:
+        :param end_time:
+        :param interval:
+        :param bar_type:
+        :param instrument_ids:
+        :return:
+        """
         lst_all_date_time_slices = []
         begin_trading_date = YfTimeHelper.get_trading_day(begin_time)
         end_trading_day = YfTimeHelper.get_trading_day(end_time)
