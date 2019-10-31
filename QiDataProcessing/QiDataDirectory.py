@@ -11,6 +11,10 @@ class QiDataDirectory:
 
     @property
     def trading_day(self):
+        """
+
+        :return:
+        """
         return self.__trading_day
 
     @trading_day.setter
