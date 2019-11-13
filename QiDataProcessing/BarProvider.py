@@ -42,6 +42,19 @@ class BarProvider:
         self.__lst_date_time_slices = BaseBarHelper.create_day_date_time_slice(instrument_manager, instrument_id, trading_day, interval, bar_type,
                                                                                *instrument_ids)
 
+    def create_bar_provider_by_trading_day_period(self, instrument_manager, instrument_id, begin_date, end_date, interval, bar_type, *instrument_ids):
+        self.instrument_id = instrument_id
+        self.interval = interval
+        self.bar_type = bar_type
+        if (bar_type == EnumBarType.second) | (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
+            self.__lst_date_time_slices = BaseBarHelper.create_in_day_date_time_slice_by_trading_date_period(instrument_manager, instrument_id, begin_date,
+                                                                                                             end_date, interval,
+                                                                                                             bar_type, *instrument_ids)
+        elif bar_type == EnumBarType.day:
+            self.__lst_date_time_slices = BaseBarHelper.create_out_day_date_time_slice(begin_date, end_date, interval, bar_type)
+        else:
+            raise Exception("不支持的K线类型")
+
     @property
     def is_end(self):
         return self.__pos_time >= len(self.__lst_date_time_slices)

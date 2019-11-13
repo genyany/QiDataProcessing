@@ -216,7 +216,7 @@ class TickStream:
         day = reader.read_byte()
 
         self.__trading_day = datetime.date(year, month, day)
-        self.__pre_trading_day1 = TradingDayHelper.GetPreTradingDay(self.__trading_day)
+        self.__pre_trading_day1 = TradingDayHelper.get_pre_trading_day(self.__trading_day)
         self.__pre_trading_day2 = self.__pre_trading_day1 + datetime.timedelta(days=1)
 
         self.__pre_close_price = reader.read_int32() / self.__multi_unit

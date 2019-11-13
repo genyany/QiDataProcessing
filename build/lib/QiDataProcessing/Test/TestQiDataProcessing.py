@@ -30,42 +30,42 @@ instrument_id_a = "IF9999"
 instrument_id_b = "rb9999"
 begin_time = datetime.datetime(2019, 7, 10)
 end_time = datetime.datetime(trading_day.year, trading_day.month, trading_day.day)
+#
+# bar_series = qi_data_controller.get_bar_series_by_time(EnumMarket.期货, instrument_id_a, interval, bar_type, begin_time, end_time)
+# index = 1
+# for bar in bar_series:
+#     print("["+instrument_id_a+"]"+str(index)+":"+bar.to_string())
+#     index += 1
+#
+# length = 20
+# bar_series = qi_data_controller.get_bar_series_by_length(EnumMarket.期货, instrument_id_b, interval, bar_type, length, end_time)
+# index = 1
+# for bar in bar_series:
+#     print("["+instrument_id_b+"]"+str(index)+":"+bar.to_string())
+#     index += 1
 
-bar_series = qi_data_controller.get_bar_series_by_time(EnumMarket.期货, instrument_id_a, interval, bar_type, begin_time, end_time)
-index = 1
-for bar in bar_series:
-    print("["+instrument_id_a+"]"+str(index)+":"+bar.to_string())
-    index += 1
 
-length = 20
-bar_series = qi_data_controller.get_bar_series_by_length(EnumMarket.期货, instrument_id_b, interval, bar_type, length, end_time)
-index = 1
-for bar in bar_series:
-    print("["+instrument_id_b+"]"+str(index)+":"+bar.to_string())
-    index += 1
-
-
-begin_trading_date = datetime.datetime(2019, 5, 1)
-end_trading_date = datetime.datetime(2019, 5, 8)
-instrument_id = "IF9999"
-interval = 5
-bar_type = EnumBarType.minute
+begin_trading_date = datetime.datetime(2017, 6, 30)
+end_trading_date = datetime.datetime(2017, 7, 5)
+instrument_id = "rb9999"
+interval = 1
+bar_type = EnumBarType.day
 bar_series = qi_data_controller.load_bar_series_by_date(EnumMarket.期货, instrument_id, interval, bar_type, begin_trading_date, end_trading_date)
 index = 1
 for bar in bar_series:
-    print("["+instrument_id+"]"+str(index)+":"+bar.to_string())
+    print("["+instrument_id+"]"+str(index)+":"+bar.to_string()+','+str(bar.pre_close))
     index += 1
 
-length = 20
-end_trading_date = datetime.datetime(2019, 5, 7)
-instrument_id = "IF9999"
-interval = 5
-bar_type = EnumBarType.minute
-bar_series = qi_data_controller.load_bar_series_by_length(EnumMarket.期货, instrument_id, interval, bar_type, length, end_trading_date)
-index = 1
-for bar in bar_series:
-    print("["+instrument_id+"]"+str(index)+":"+bar.to_string())
-    index += 1
+# length = 20
+# end_trading_date = datetime.datetime(2019, 5, 7)
+# instrument_id = "IF9999"
+# interval = 5
+# bar_type = EnumBarType.minute
+# bar_series = qi_data_controller.load_bar_series_by_length(EnumMarket.期货, instrument_id, interval, bar_type, length, end_trading_date)
+# index = 1
+# for bar in bar_series:
+#     print("["+instrument_id+"]"+str(index)+":"+bar.to_string())
+#     index += 1
 
 # lst_a = []
 # for bar in bar_series:

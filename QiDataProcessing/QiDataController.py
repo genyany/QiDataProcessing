@@ -26,7 +26,7 @@ class QiDataController:
         instrument_manager.load(config_dir, EnumMarket.期货)
 
         self.instrument_manager = instrument_manager
-        self.__trading_day = qi_data_directory.trading_day
+        self.trading_day = qi_data_directory.trading_day
 
         self.__future_tick_path = qi_data_directory.future_tick
         self.__future_tick_cache_path = qi_data_directory.future_tick_cache
@@ -99,6 +99,7 @@ class QiDataController:
     def load_day_bar_series(self, market, instrument_id, begin_date, end_date):
         path = self.__future_day_path
         bar_series = []
+        pre_begin_date = TradingDayHelper.get_pre_trading_day(begin_date)
         try:
             begin_month = datetime.datetime(begin_date.year, begin_date.month, 1)
             end_month = datetime.datetime(end_date.year, end_date.month, 1) + relativedelta(months=+1) + datetime.timedelta(days=-1)
@@ -107,17 +108,25 @@ class QiDataController:
                 file_path = os.path.join(path, date.strftime('%Y%m'))
                 file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".day")
                 day_bar_steam = DayBarStream(market, instrument_id, file_path)
-                day_bar_steam.read(bar_series, begin_date, end_date)
+                day_bar_steam.read(bar_series, pre_begin_date, end_date)
                 date = date + relativedelta(months=+1)
         except Exception as e:
             print(str(e))
 
-        return bar_series
+        bar_series_processed = []
+        pre_bar = None
+        for bar in bar_series:
+            if pre_bar is not None:
+                bar.pre_close = pre_bar.close
+            pre_bar = bar
+            if bar.begin_time >= begin_date:
+                bar_series_processed.append(bar)
+        return bar_series_processed
 
     def load_tick_series(self, market, instrument_id, *trading_dates):
         if len(trading_dates) == 1:
             trading_date = trading_dates[0]
-            if trading_date == self.__trading_day:
+            if trading_date == self.trading_day:
                 return self.__load_today_tick_series(market, instrument_id, trading_date)
             return self.__load_history_tick_series(market, instrument_id, trading_date)
         else:
@@ -128,7 +137,7 @@ class QiDataController:
             try:
                 begin_trading_date = YfTimeHelper.get_trading_day(begin_time)
                 last_trading_day = YfTimeHelper.get_trading_day(end_time)
-                if last_trading_day == self.__trading_day:
+                if last_trading_day == self.trading_day:
                     end_trading_date = TradingDayHelper.get_pre_trading_day(last_trading_day)
                 else:
                     end_trading_date = last_trading_day
@@ -144,7 +153,7 @@ class QiDataController:
                     date = date + datetime.timedelta(days=1)
 
                 if end_trading_date != last_trading_day:
-                    tick_series = self.load_tick_series(market, instrument_id, self.__trading_day)
+                    tick_series = self.load_tick_series(market, instrument_id, self.trading_day)
                     all_ticks.extend(tick_series)
             except Exception as e:
                 print(str(e))
@@ -194,7 +203,7 @@ class QiDataController:
         # 加载历史数据
         begin_trading_date = YfTimeHelper.get_trading_day(begin_time)
         last_trading_day = YfTimeHelper.get_trading_day(end_time)
-        if last_trading_day == self.__trading_day:
+        if last_trading_day == self.trading_day:
             end_trading_date = TradingDayHelper.get_pre_trading_day(last_trading_day)
         else:
             end_trading_date = last_trading_day
@@ -226,7 +235,7 @@ class QiDataController:
 
         bar_series = bar_provider.bar_series
         bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.__trading_day, interval, bar_type, *instrument_ids)
+        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
         for bar in bar_series:
             bar_provider.bar_series.append(bar)
 
@@ -272,7 +281,7 @@ class QiDataController:
 
         # 这里为了提升取数据的速度,根据时间预计算根数,不足再补
         last_trading_day = YfTimeHelper.get_trading_day(end_time)
-        if last_trading_day == self.__trading_day:
+        if last_trading_day == self.trading_day:
             end_trading_date = TradingDayHelper.get_pre_trading_day(last_trading_day)
         else:
             end_trading_date = last_trading_day
@@ -347,7 +356,7 @@ class QiDataController:
                     break
 
         bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.__trading_day, interval, bar_type, *instrument_ids)
+        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
         for bar in bar_series:
             bar_provider.bar_series.append(bar)
 
@@ -362,10 +371,10 @@ class QiDataController:
         return bar_provider.bar_series
 
     def __combine_today_tick(self, bar_provider, market, end_time):
-        date_time_slice = self.instrument_manager.get_living_date_time(self.__trading_day, bar_provider.instrument_id)
+        date_time_slice = self.instrument_manager.get_living_date_time(self.trading_day, bar_provider.instrument_id)
         if end_time > date_time_slice.begin_time:
             # 加载当日数据
-            tick_series = self.__load_today_tick_series(market, bar_provider.instrument_id, self.__trading_day)
+            tick_series = self.__load_today_tick_series(market, bar_provider.instrument_id, self.trading_day)
 
             if (bar_provider.bar_type == EnumBarType.second) | (bar_provider.bar_type == EnumBarType.minute) | (bar_provider.bar_type == EnumBarType.hour):
                 for tick in tick_series:
@@ -410,6 +419,33 @@ class QiDataController:
                     bar_provider.bar_series[-1].trading_date = last_tick.trading_day
 
     def load_bar_series_by_date(self, market, instrument_id, interval, bar_type, begin_date, end_date, *instrument_ids):
+        begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
+        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
+        begin_trading_date = YfTimeHelper.get_trading_day(begin_date)
+        end_trading_date = YfTimeHelper.get_trading_day(end_date)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
+        bar_provider = BarProvider()
+        bar_provider.create_bar_provider_by_trading_day_period(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval,
+                                                               bar_type, *instrument_ids)
+        if bar_type == EnumBarType.second:
+            for trading_day in lst_trading_days:
+                tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
+                for tick in tick_series:
+                    bar_provider.add_tick(tick)
+        elif (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
+            bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_min:
+                bar_provider.add_bar(bar)
+        elif bar_type == EnumBarType.day:
+            bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_day:
+                bar_provider.add_bar(bar)
+        else:
+            raise Exception("不支持的k线:" + str(bar_type))
+
+        return bar_provider.bar_series
+
+    def load_bar_series_by_date_time_period(self, market, instrument_id, interval, bar_type, begin_date, end_date, *instrument_ids):
         begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
         end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
         begin_trading_date = YfTimeHelper.get_trading_day(begin_date)
@@ -510,7 +546,7 @@ class QiDataController:
                     break
 
         bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.__trading_day, interval, bar_type, *instrument_ids)
+        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
         for bar in bar_series:
             bar_provider.bar_series.append(bar)
 

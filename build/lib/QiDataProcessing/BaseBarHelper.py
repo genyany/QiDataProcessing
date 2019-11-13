@@ -149,6 +149,17 @@ class BaseBarHelper:
 
     @staticmethod
     def create_in_day_date_time_slice(instrument_manager, instrument_id, begin_time, end_time, interval, bar_type, *instrument_ids):
+        """
+
+        :param instrument_manager:
+        :param instrument_id:
+        :param begin_time:
+        :param end_time:
+        :param interval:
+        :param bar_type:
+        :param instrument_ids:
+        :return:
+        """
         lst_all_date_time_slices = []
         begin_trading_date = YfTimeHelper.get_trading_day(begin_time)
         end_trading_day = YfTimeHelper.get_trading_day(end_time)
@@ -160,6 +171,32 @@ class BaseBarHelper:
             for dateTimeSlice in lst_date_time_slices:
                 if dateTimeSlice.end_time >= begin_time:
                     lst_all_date_time_slices.append(dateTimeSlice)
+
+        return lst_all_date_time_slices
+
+    @staticmethod
+    def create_in_day_date_time_slice_by_trading_date_period(instrument_manager, instrument_id, begin_date, end_date, interval, bar_type, *instrument_ids):
+        """
+        按照交易日区间切分K线
+        :param instrument_manager:
+        :param instrument_id:
+        :param begin_date:
+        :param end_date:
+        :param interval:
+        :param bar_type:
+        :param instrument_ids:
+        :return:
+        """
+        lst_all_date_time_slices = []
+        begin_trading_date = YfTimeHelper.get_trading_day(begin_date)
+        end_trading_day = YfTimeHelper.get_trading_day(end_date)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_day)
+        for trading_day in lst_trading_days:
+            lst_trading_time_slices = instrument_manager.get_trading_time(trading_day, instrument_id, *instrument_ids)
+            lst_time_slices = BaseBarHelper.create_time_slice(lst_trading_time_slices, 0, interval, bar_type)
+            lst_date_time_slices = BaseBarHelper.create_date_time_slice(trading_day, lst_time_slices)
+            for dateTimeSlice in lst_date_time_slices:
+                lst_all_date_time_slices.append(dateTimeSlice)
 
         return lst_all_date_time_slices
 
