@@ -31,6 +31,12 @@ class TradingDayHelper:
 
     @staticmethod
     def get_trading_days(begin_date, end_date):
+        """
+        获取日期区间内的所有交易日
+        :param begin_date:
+        :param end_date:
+        :return:
+        """
         list_get_trading_day = []
         begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
         end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
@@ -42,16 +48,28 @@ class TradingDayHelper:
 
     @staticmethod
     def get_natural_date_time(trading_date, time_span):
+        """
+        根据交易日和时间切片生成自然日时间
+        :param trading_date:
+        :param time_span:
+        :return:
+        """
         natural_time = trading_date + time_span
-        hours = time_span.hour
+        hours = natural_time.hour
         if hours <= 6:
-            natural_time = TradingDayHelper.get_pre_trading_day(trading_date)+datetime.timedelta(days=1)+time_span
+            natural_time = TradingDayHelper.get_pre_trading_day(trading_date) + datetime.timedelta(days=1)+time_span
         elif hours >= 16:
             natural_time = TradingDayHelper.get_pre_trading_day(trading_date) + time_span
         return natural_time
 
     @staticmethod
     def get_next_trading_day(date, n=1):
+        """
+        往后回溯n个交易日
+        :param date:
+        :param n:
+        :return:
+        """
         date = datetime.datetime(date.year, date.month, date.day)
         trading_days = TradingDayHelper.trading_days()
         index = -1
@@ -65,6 +83,12 @@ class TradingDayHelper:
 
     @staticmethod
     def get_pre_trading_day(date, n=1):
+        """
+        往前回溯n个交易日
+        :param date:交易日
+        :param n:回溯天数
+        :return:
+        """
         date = datetime.datetime(date.year, date.month, date.day)
         trading_days = TradingDayHelper.trading_days()
         if date in trading_days:
@@ -81,6 +105,11 @@ class TradingDayHelper:
 
     @staticmethod
     def get_first_trading_day(date):
+        """
+        获取大于等于日期的第一个交易日
+        :param date:
+        :return:
+        """
         date = datetime.datetime(date.year, date.month, date.day)
         for i in range(0, 20):
             if TradingDayHelper.is_china_trading_day(date):
@@ -90,6 +119,11 @@ class TradingDayHelper:
 
     @staticmethod
     def get_last_trading_day(date):
+        """
+        获取小于等于日期的最后一个交易日
+        :param date:
+        :return:
+        """
         date = datetime.datetime(date.year, date.month, date.day)
         for i in range(0, 20):
             if TradingDayHelper.is_china_trading_day(date):
@@ -99,6 +133,12 @@ class TradingDayHelper:
 
     @staticmethod
     def get_trading_day_count(begin_date, end_date):
+        """
+        获取交易区间的交易日个数，是闭区间，包含头尾的
+        :param begin_date:
+        :param end_date:
+        :return:
+        """
         trading_days = TradingDayHelper.trading_days()
         begin_date = TradingDayHelper.get_first_trading_day(begin_date)
         end_date = TradingDayHelper.get_last_trading_day(end_date)
@@ -111,6 +151,11 @@ class TradingDayHelper:
 
     @staticmethod
     def is_china_trading_day(date):
+        """
+        是否为中国交易日
+        :param date:
+        :return:
+        """
         date = datetime.datetime(date.year, date.month, date.day)
         trading_days = TradingDayHelper.trading_days()
         if date not in trading_days:

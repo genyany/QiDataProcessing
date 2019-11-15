@@ -45,6 +45,12 @@ class MinBarStream(object):
             self._fileHeader.read(reader)
 
     def read_trading_day(self, bar_series, trading_day):
+        """
+        按照交易日读取分钟线数据
+        :param bar_series:分钟线数据
+        :param trading_day:交易日
+        :return:
+        """
         if bar_series is None:
             raise Exception("bar_series为空")
 
@@ -74,6 +80,13 @@ class MinBarStream(object):
         return read_count > 0
 
     def read_trading_days(self, bar_series, begin_trading_day, end_trading_day):
+        """
+        按照交易日区间读取分钟线数据
+        :param bar_series:分钟线数据
+        :param begin_trading_day:开始交易日
+        :param end_trading_day:结束交易日
+        :return:
+        """
         if bar_series is None:
             raise Exception("bar_series为空")
 

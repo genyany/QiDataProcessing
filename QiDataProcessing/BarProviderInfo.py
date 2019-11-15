@@ -2,6 +2,9 @@ from QiDataProcessing.Core.EnumBarType import EnumBarType
 
 
 class BarProviderInfo:
+    """
+    K线提供器信息
+    """
     def __init__(self):
         self.time_slices = []
         self.offset = 0

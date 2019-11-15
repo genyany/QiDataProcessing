@@ -7,6 +7,10 @@ from QiDataProcessing.Core.EnumBarType import EnumBarType
 
 
 class BarProvider:
+    """
+    K线提供器
+    """
+
     def __init__(self):
         self.__lst_date_time_slices = []
         self.__pos_time = 0
@@ -23,35 +27,64 @@ class BarProvider:
         self.__bar_series = []
         self.lock = threading.RLock()
 
-    def create_bar_provider_by_period(self, instrument_manager, instrument_id, begin_time, end_time, interval, bar_type, *instrument_ids):
+    def create_bar_provider_by_date_time(self, instrument_manager, instrument_id, begin_time, end_time, interval, bar_type, *instrument_ids):
+        """
+        根据时间区间创建K线提供器
+        :param instrument_manager:
+        :param instrument_id:
+        :param begin_time:
+        :param end_time:
+        :param interval:
+        :param bar_type:
+        :param instrument_ids:
+        """
         self.instrument_id = instrument_id
         self.interval = interval
         self.bar_type = bar_type
         if (bar_type == EnumBarType.second) | (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
-            self.__lst_date_time_slices = BaseBarHelper.create_in_day_date_time_slice(instrument_manager, instrument_id, begin_time, end_time, interval,
-                                                                                      bar_type, *instrument_ids)
+            self.__lst_date_time_slices = BaseBarHelper.create_in_day_date_time_slice_by_date_time(
+                instrument_manager, instrument_id, begin_time, end_time, interval, bar_type, *instrument_ids)
         elif bar_type == EnumBarType.day:
-            self.__lst_date_time_slices = BaseBarHelper.create_out_day_date_time_slice(begin_time, end_time, interval, bar_type)
+            self.__lst_date_time_slices = BaseBarHelper.create_out_day_date_time_slice_by_date_time(begin_time, end_time, interval, bar_type)
         else:
             raise Exception("不支持的K线类型")
 
-    def create_bar_provider_by_trading_day(self, instrument_manager, instrument_id, trading_day, interval, bar_type, *instrument_ids):
+    def create_bar_provider_by_trading_date(self, instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids):
+        """
+        根据交易日创建K线提供器
+        :param instrument_manager:
+        :param instrument_id:
+        :param trading_date:
+        :param interval:
+        :param bar_type:
+        :param instrument_ids:
+        """
         self.instrument_id = instrument_id
         self.interval = interval
         self.bar_type = bar_type
-        self.__lst_date_time_slices = BaseBarHelper.create_day_date_time_slice(instrument_manager, instrument_id, trading_day, interval, bar_type,
-                                                                               *instrument_ids)
+        self.__lst_date_time_slices = BaseBarHelper.create_one_day_date_time_slice(instrument_manager, instrument_id, trading_date, interval, bar_type,
+                                                                                   *instrument_ids)
 
-    def create_bar_provider_by_trading_day_period(self, instrument_manager, instrument_id, begin_date, end_date, interval, bar_type, *instrument_ids):
+    def create_bar_provider_by_date(self, instrument_manager, instrument_id, begin_date, end_date, interval, bar_type, *instrument_ids):
+        """
+        根据日期区间创建K线提供器
+        :param instrument_manager:
+        :param instrument_id:
+        :param begin_date:
+        :param end_date:
+        :param interval:
+        :param bar_type:
+        :param instrument_ids:
+        """
         self.instrument_id = instrument_id
         self.interval = interval
         self.bar_type = bar_type
         if (bar_type == EnumBarType.second) | (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
-            self.__lst_date_time_slices = BaseBarHelper.create_in_day_date_time_slice_by_trading_date_period(instrument_manager, instrument_id, begin_date,
-                                                                                                             end_date, interval,
-                                                                                                             bar_type, *instrument_ids)
+            self.__lst_date_time_slices = BaseBarHelper.create_in_day_date_time_slice_by_date(instrument_manager, instrument_id, begin_date,
+                                                                                              end_date, interval,
+                                                                                              bar_type, *instrument_ids)
         elif bar_type == EnumBarType.day:
-            self.__lst_date_time_slices = BaseBarHelper.create_out_day_date_time_slice(begin_date, end_date, interval, bar_type)
+            self.__lst_date_time_slices = BaseBarHelper.create_out_day_date_time_slice_by_date(begin_date, end_date, interval, bar_type)
         else:
             raise Exception("不支持的K线类型")
 
@@ -72,7 +105,7 @@ class BarProvider:
         if self.is_end:
             self.change_state = 4
             return
-        result = self.__move_to(new_bar.begin_time)
+        result = self.__move_to(new_bar.begin_time, new_bar.end_time)
         ir = result[0]
         index = result[1]
         if ir == -1:
@@ -151,7 +184,7 @@ class BarProvider:
             self.change_state = 4
             return
 
-        result = self.__move_to(tick.date_time)  # 自动判断是否切换下个区间
+        result = self.__move_to(tick.date_time, tick.date_time)  # 自动判断是否切换下个区间
         ir = result[0]
         index = result[1]
         if ir == -1:
@@ -237,12 +270,12 @@ class BarProvider:
 
         self.change_state = 3
 
-    def __move_to(self, now):
+    def __move_to(self, begin_time, end_time):
         index = self.__pos_time
 
         # region -1 无效
         current_date_time_slice = self.__lst_date_time_slices[self.__pos_time]
-        if now < current_date_time_slice.begin_time:
+        if begin_time < current_date_time_slice.begin_time:
             return -1, index
         # endregion
 
@@ -251,7 +284,7 @@ class BarProvider:
             date_time_slice = self.__lst_date_time_slices[index]
             next_date_time_slice = self.__lst_date_time_slices[index + 1]
 
-            ir = self.__is_current_date_time_slice(date_time_slice, next_date_time_slice, now)
+            ir = self.__is_current_date_time_slice(date_time_slice, next_date_time_slice, begin_time, end_time)
             if ir == 0:
                 return 0, index
             # 处理盘中休息的异常数据(一般不会出现这种情况)
@@ -261,7 +294,7 @@ class BarProvider:
             index += 1
 
         # 收盘以后的Tick处理
-        bmy = self.__is_current_date_time_slice(self.__lst_date_time_slices[index], None, now)
+        bmy = self.__is_current_date_time_slice(self.__lst_date_time_slices[index], None, begin_time, end_time)
         if bmy == 0:
             return 0, index
 
@@ -272,20 +305,20 @@ class BarProvider:
         return 1, index
 
     @staticmethod
-    def __is_current_date_time_slice(current_date_time_slice, next_date_time_slice, date_time):
+    def __is_current_date_time_slice(current_date_time_slice, next_date_time_slice, begin_time, end_time):
         if next_date_time_slice is not None:
             if current_date_time_slice.end_time < next_date_time_slice.begin_time:
-                if (date_time > current_date_time_slice.end_time) & (date_time < next_date_time_slice.begin_time):
-                    ta = date_time - current_date_time_slice.end_time
-                    tb = next_date_time_slice.begin_time - date_time
+                if (begin_time > current_date_time_slice.end_time) & (begin_time < next_date_time_slice.begin_time):
+                    ta = begin_time - current_date_time_slice.end_time
+                    tb = next_date_time_slice.begin_time - begin_time
                     if tb.total_seconds() < ta.total_seconds():
                         return 2
                     return 0
 
-            if (current_date_time_slice.begin_time <= date_time) & (date_time < next_date_time_slice.begin_time):
+            if (current_date_time_slice.begin_time <= begin_time) & (begin_time < next_date_time_slice.begin_time):
                 return 0
         else:
             # 收盘5秒内的tick都计算
-            if (current_date_time_slice.begin_time <= date_time) & (date_time < (current_date_time_slice.end_time + datetime.timedelta(seconds=100))):
+            if (current_date_time_slice.begin_time <= begin_time) & (end_time < (current_date_time_slice.end_time + datetime.timedelta(seconds=59))):
                 return 0
         return 1

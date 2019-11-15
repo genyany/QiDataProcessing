@@ -3,10 +3,12 @@ import os
 
 from QiDataProcessing.Core.Bar import Bar
 from QiDataProcessing.Core.BinaryReader import BinaryReader
-from QiDataProcessing.Core.TradingDayHelper import TradingDayHelper
 
 
 class DayBarStream(object):
+    """
+    日线读取流
+    """
     CFileHeaderLen = 64
     CBarLen = 12 * 4
     CReserve = 48
@@ -93,7 +95,6 @@ class DayBarStream(object):
 
     def read_bars(self, reader, bar_series, begin_date, end_date):
         begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
-        pre_begin_date = TradingDayHelper.get_pre_trading_day(begin_date)
         end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
         i = 0
         for i in range(0, self._tickCount):
@@ -102,7 +103,7 @@ class DayBarStream(object):
             day = reader.read_byte()
             reader.stream.seek(self.CBarLen - 4, 1)
             dt = datetime.datetime(year, month, day)
-            if dt >= pre_begin_date:
+            if dt >= begin_date:
                 reader.stream.seek(-self.CBarLen, 1)
                 break
 

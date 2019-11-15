@@ -1,5 +1,7 @@
 import datetime
 
+from QiDataProcessing.Core.TradingDayHelper import TradingDayHelper
+
 
 class YfTimeHelper:
 
@@ -20,17 +22,12 @@ class YfTimeHelper:
         :param date_time:datetime.datetime
         :return:datetime.datetime
         """
-        if date_time.hour < 7:
-            if date_time.weekday() != 5:
-                return datetime.datetime(date_time.year, date_time.month, date_time.day)
-            return datetime.datetime(date_time.year, date_time.month, date_time.day) + datetime.timedelta(days=2)
-
-        if date_time.hour < 18:
-            return datetime.datetime(date_time.year, date_time.month, date_time.day)
-
-        if date_time.weekday() != 4:
-            return datetime.datetime(date_time.year, date_time.month, date_time.day) + datetime.timedelta(days=1)
-        return datetime.datetime(date_time.year, date_time.month, date_time.day) + datetime.timedelta(days=3)
+        trading_date = datetime.datetime(date_time.year, date_time.month, date_time.day)
+        if date_time.hour <= 6:
+            trading_date = TradingDayHelper.get_first_trading_day(trading_date)
+        elif date_time.hour >= 16:
+            trading_date = TradingDayHelper.get_next_trading_day(trading_date)
+        return trading_date
 
     @staticmethod
     def get_date_time_by_trading_day(trading_day, time_span):

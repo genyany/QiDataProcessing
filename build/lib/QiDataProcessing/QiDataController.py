@@ -20,6 +20,10 @@ from QiDataProcessing.TradingFrame.YfTimeHelper import YfTimeHelper
 
 
 class QiDataController:
+    """
+    量化投资数据句柄
+    """
+
     def __init__(self, qi_data_directory):
         config_dir = os.path.split(os.path.realpath(__file__))[0] + "\\Config"
         instrument_manager = InstrumentManager()
@@ -35,6 +39,15 @@ class QiDataController:
 
         self.__bar_series_map = {}
         self.__tick_series_map = {}
+
+    def init(self, trading_date):
+        """
+        重新初始化句柄交易日和缓存数据
+        :param trading_date:
+        """
+        self.trading_day = trading_date
+        self.__bar_series_map.clear()
+        self.__tick_series_map.clear()
 
     def __load_today_tick_series(self, market, instrument_id, trading_date):
         path = self.__future_tick_cache_path
@@ -67,11 +80,19 @@ class QiDataController:
         return tick_series
 
     def load_min_bar_series(self, market, instrument_id, *trading_dates):
+        """
+        根据交易日信息加载历史分钟线数据
+        :param market:
+        :param instrument_id:
+        :param trading_dates:
+        :return:
+        """
         path = self.__future_min_path
         bar_series = []
         try:
             if len(trading_dates) == 1:
                 trading_date = trading_dates[0]
+                trading_date = datetime.datetime(trading_date.year, trading_date.month, trading_date.day)
 
                 file_path = os.path.join(path, trading_date.strftime('%Y%m'))
                 file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".min")
@@ -82,6 +103,9 @@ class QiDataController:
             if len(trading_dates) == 2:
                 begin_date = trading_dates[0]
                 end_date = trading_dates[1]
+                begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
+                end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
+
                 begin_month = datetime.datetime(begin_date.year, begin_date.month, 1)
                 end_month = datetime.datetime(end_date.year, end_date.month, 1) + relativedelta(months=+1) + datetime.timedelta(days=-1)
                 date = begin_month
@@ -96,23 +120,55 @@ class QiDataController:
 
         return bar_series
 
-    def load_day_bar_series(self, market, instrument_id, begin_date, end_date):
+    def load_day_bar_series(self, market, instrument_id, *trading_dates):
+        """
+        根据交易日信息加载历史日线数据
+        :param market:市场
+        :param instrument_id:合约编号
+        :param trading_dates:
+        :return:K线
+        """
         path = self.__future_day_path
         bar_series = []
-        pre_begin_date = TradingDayHelper.get_pre_trading_day(begin_date)
+        begin_date = trading_dates[0]
         try:
-            begin_month = datetime.datetime(begin_date.year, begin_date.month, 1)
-            end_month = datetime.datetime(end_date.year, end_date.month, 1) + relativedelta(months=+1) + datetime.timedelta(days=-1)
-            date = begin_month
-            while date <= end_month:
-                file_path = os.path.join(path, date.strftime('%Y%m'))
-                file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".day")
-                day_bar_steam = DayBarStream(market, instrument_id, file_path)
-                day_bar_steam.read(bar_series, pre_begin_date, end_date)
-                date = date + relativedelta(months=+1)
+            if len(trading_dates) == 1:
+                trading_date = trading_dates[0]
+                trading_date = datetime.datetime(trading_date.year, trading_date.month, trading_date.day)
+
+                # 这边做了修改，由于数据问题，不得不多加载一天的历史数据，来修复日线bar.pre_close的错误问题
+                pre_begin_date = TradingDayHelper.get_pre_trading_day(trading_date)
+                begin_month = datetime.datetime(pre_begin_date.year, pre_begin_date.month, 1)
+                end_month = datetime.datetime(trading_date.year, trading_date.month, 1) + relativedelta(months=+1) + datetime.timedelta(days=-1)
+                date = begin_month
+                while date <= end_month:
+                    file_path = os.path.join(path, date.strftime('%Y%m'))
+                    file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".day")
+                    day_bar_steam = DayBarStream(market, instrument_id, file_path)
+                    day_bar_steam.read(bar_series, pre_begin_date, trading_date)
+                    date = date + relativedelta(months=+1)
+
+            if len(trading_dates) == 2:
+                begin_date = trading_dates[0]
+                end_date = trading_dates[1]
+                begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
+                end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
+
+                # 这边做了修改，由于数据问题，不得不多加载一天的历史数据，来修复日线bar.pre_close的错误问题
+                pre_begin_date = TradingDayHelper.get_pre_trading_day(begin_date)
+                begin_month = datetime.datetime(pre_begin_date.year, pre_begin_date.month, 1)
+                end_month = datetime.datetime(end_date.year, end_date.month, 1) + relativedelta(months=+1) + datetime.timedelta(days=-1)
+                date = begin_month
+                while date <= end_month:
+                    file_path = os.path.join(path, date.strftime('%Y%m'))
+                    file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".day")
+                    day_bar_steam = DayBarStream(market, instrument_id, file_path)
+                    day_bar_steam.read(bar_series, pre_begin_date, end_date)
+                    date = date + relativedelta(months=+1)
         except Exception as e:
             print(str(e))
 
+        # 新增的数据处理来修复日线bar.pre_close的错误问题
         bar_series_processed = []
         pre_bar = None
         for bar in bar_series:
@@ -124,69 +180,443 @@ class QiDataController:
         return bar_series_processed
 
     def load_tick_series(self, market, instrument_id, *trading_dates):
+        """
+        根据交易日信息加载历史Tick数据
+        :param market:市场
+        :param instrument_id:合约编号
+        :param trading_dates:交易日
+        :return:
+        """
         if len(trading_dates) == 1:
             trading_date = trading_dates[0]
-            if trading_date == self.trading_day:
-                return self.__load_today_tick_series(market, instrument_id, trading_date)
+            trading_date = datetime.datetime(trading_date.year, trading_date.month, trading_date.day)
             return self.__load_history_tick_series(market, instrument_id, trading_date)
         else:
-            begin_time = trading_dates[0]
-            end_time = trading_dates[1]
-            path = self.__future_tick_path
+            begin_date = trading_dates[0]
+            end_date = trading_dates[1]
+            begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
+            end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
+
             all_ticks = []
             try:
-                begin_trading_date = YfTimeHelper.get_trading_day(begin_time)
-                last_trading_day = YfTimeHelper.get_trading_day(end_time)
-                if last_trading_day == self.trading_day:
-                    end_trading_date = TradingDayHelper.get_pre_trading_day(last_trading_day)
-                else:
-                    end_trading_date = last_trading_day
+                begin_trading_date = TradingDayHelper.get_first_trading_day(begin_date)
+                end_trading_date = TradingDayHelper.get_last_trading_day(end_date)
                 date = begin_trading_date
                 while date <= end_trading_date:
-                    file_path = os.path.join(path, date.strftime("%Y%m%D"))
-                    file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
-                    if instrument_id.lower() != "index":
-                        instrument = self.instrument_manager[instrument_id.split('.')[0]]
-                        tick_stream = TickStream(market, instrument_id, instrument.exchange_id, file_path)
-                        tick_stream.read_by_time(all_ticks, begin_time, end_time)
-
-                    date = date + datetime.timedelta(days=1)
-
-                if end_trading_date != last_trading_day:
-                    tick_series = self.load_tick_series(market, instrument_id, self.trading_day)
-                    all_ticks.extend(tick_series)
+                    temp_ticks = self.__load_history_tick_series(market, instrument_id, date)
+                    all_ticks.extend(temp_ticks)
+                    date = TradingDayHelper.get_next_trading_day(date)
             except Exception as e:
                 print(str(e))
 
             return all_ticks
 
+    def load_tick_series_by_date_time(self, market, instrument_id, begin_time, end_time):
+        """
+        根据时间区间加载历史Tick数据
+        :param market:市场
+        :param instrument_id:合约编号
+        :param begin_time:开始时间
+        :param end_time:截止时间
+        :return:
+        """
+        path = self.__future_tick_path
+        all_ticks = []
+        try:
+            begin_trading_date = YfTimeHelper.get_trading_day(begin_time)
+            end_trading_date = YfTimeHelper.get_trading_day(end_time)
+            date = begin_trading_date
+            while date <= end_trading_date:
+                file_path = os.path.join(path, date.strftime("%Y%m%D"))
+                file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
+                if instrument_id.lower() != "index":
+                    instrument = self.instrument_manager[instrument_id.split('.')[0]]
+                    tick_stream = TickStream(market, instrument_id, instrument.exchange_id, file_path)
+                    tick_stream.read_by_time(all_ticks, begin_time, end_time)
+
+                date = date + datetime.timedelta(days=1)
+        except Exception as e:
+            print(str(e))
+
+        return all_ticks
+
+    def load_tick_series_real(self, market, instrument_id, begin_time, end_time):
+        """
+        实盘根据时间区间获取Tick数据
+        会根据DataHandler设置的交易日判断，将begin_time-end_time的区间切分成历史区间和当日区间
+        历史区间：begin_time-昨日收盘
+        当日区间:当日开盘-end_time
+        若需要加载历史交易日Tick，则从历史目录加载数据
+        若需要加载当日交易日Tick，则从当日目录加载数据
+        :param market:市场
+        :param instrument_id:合约编号
+        :param begin_time:开始时间
+        :param end_time:截止时间
+        :return:
+        """
+        path = self.__future_tick_path
+        all_ticks = []
+        try:
+            begin_trading_date = YfTimeHelper.get_trading_day(begin_time)
+            last_trading_day = YfTimeHelper.get_trading_day(end_time)
+            if last_trading_day == self.trading_day:
+                end_trading_date = TradingDayHelper.get_pre_trading_day(last_trading_day)
+            else:
+                end_trading_date = last_trading_day
+            date = begin_trading_date
+            while date <= end_trading_date:
+                file_path = os.path.join(path, date.strftime("%Y%m%D"))
+                file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
+                if instrument_id.lower() != "index":
+                    instrument = self.instrument_manager[instrument_id.split('.')[0]]
+                    tick_stream = TickStream(market, instrument_id, instrument.exchange_id, file_path)
+                    tick_stream.read_by_time(all_ticks, begin_time, end_time)
+
+                date = date + datetime.timedelta(days=1)
+
+            if end_trading_date != last_trading_day:
+                tick_series = self.__load_today_tick_series(market, instrument_id, self.trading_day)
+                all_ticks.extend(tick_series)
+        except Exception as e:
+            print(str(e))
+
+        return all_ticks
+
+    def load_bar_series_by_date(self, market, instrument_id, interval, bar_type, begin_date, end_date, *instrument_ids):
+        """
+        根据日期区间加载历史K线
+        :param market:
+        :param instrument_id:
+        :param interval:
+        :param bar_type:
+        :param begin_date:
+        :param end_date:
+        :param instrument_ids:
+        :return:
+        """
+        begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
+        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
+        begin_trading_date = TradingDayHelper.get_first_trading_day(begin_date)
+        end_trading_date = TradingDayHelper.get_last_trading_day(end_date)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
+        bar_provider = BarProvider()
+        bar_provider.create_bar_provider_by_date(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval,
+                                                 bar_type, *instrument_ids)
+        if bar_type == EnumBarType.second:
+            for trading_day in lst_trading_days:
+                tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
+                for tick in tick_series:
+                    bar_provider.add_tick(tick)
+        elif (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
+            bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_min:
+                bar_provider.add_bar(bar)
+        elif bar_type == EnumBarType.day:
+            bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_day:
+                bar_provider.add_bar(bar)
+        else:
+            raise Exception("不支持的k线:" + str(bar_type))
+
+        return bar_provider.bar_series
+
+    def load_bar_series_by_date_time(self, market, instrument_id, interval, bar_type, begin_time, end_time, *instrument_ids):
+        """
+        根据时间区间加载历史K线
+        :param market:
+        :param instrument_id:
+        :param interval:
+        :param bar_type:
+        :param begin_time:
+        :param end_time:
+        :param instrument_ids:
+        :return:
+        """
+        begin_trading_date = YfTimeHelper.get_trading_day(begin_time)
+        end_trading_date = YfTimeHelper.get_trading_day(end_time)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
+        bar_provider = BarProvider()
+        bar_provider.create_bar_provider_by_date_time(self.instrument_manager, instrument_id, begin_time, end_time, interval, bar_type,
+                                                      *instrument_ids)
+        if bar_type == EnumBarType.second:
+            for trading_day in lst_trading_days:
+                tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
+                for tick in tick_series:
+                    bar_provider.add_tick(tick)
+        elif (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
+            bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_min:
+                bar_provider.add_bar(bar)
+        elif bar_type == EnumBarType.day:
+            bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_day:
+                bar_provider.add_bar(bar)
+        else:
+            raise Exception("不支持的k线:" + str(bar_type))
+
+        return bar_provider.bar_series
+
+    def load_bar_series_by_length(self, market, instrument_id, interval, bar_type, max_length, end_date, *instrument_ids):
+        """
+        根据结束日期加载指定回溯根数的历史K线（K线数据包含结束日期）
+        :param market:
+        :param instrument_id:
+        :param interval:
+        :param bar_type:
+        :param max_length:
+        :param end_date:
+        :param instrument_ids:
+        :return:
+        """
+        # 这里为了提升取数据的速度,根据时间预计算根数,不足再补
+        end_trading_date = TradingDayHelper.get_last_trading_day(end_date)
+        lst_date_time_slices_one_day = BaseBarHelper.create_one_day_date_time_slice(
+            self.instrument_manager, instrument_id, end_trading_date, interval, bar_type, *instrument_ids)
+        if len(lst_date_time_slices_one_day) > 0:
+            n_one_day_count = len(lst_date_time_slices_one_day)
+        else:
+            n_one_day_count = 1
+
+        n_trading_days = int(math.ceil(max_length * 1.0 / n_one_day_count))
+        if bar_type == EnumBarType.day:
+            n_trading_days = n_trading_days * interval
+        else:
+            n_trading_days = n_trading_days
+
+        begin_trading_date = TradingDayHelper.get_pre_trading_day(end_trading_date, n_trading_days - 1)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
+        bar_provider = BarProvider()
+        bar_provider.create_bar_provider_by_date(
+            self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval, bar_type, *instrument_ids)
+        if bar_provider.bar_type == EnumBarType.second:
+            for trading_day in lst_trading_days:
+                tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
+                for tick in tick_series:
+                    bar_provider.add_tick(tick)
+        elif (bar_provider.bar_type == EnumBarType.minute) | (bar_provider.bar_type == EnumBarType.hour):
+            bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_min:
+                bar_provider.add_bar(bar)
+        elif bar_provider.bar_type == EnumBarType.day:
+            bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_day:
+                bar_provider.add_bar(bar)
+        else:
+            raise Exception("不支持的k线:" + str(bar_type))
+
+        bar_series = bar_provider.bar_series
+        if len(bar_provider.bar_series) < max_length:
+            trading_date = begin_trading_date
+            count = 0
+            while count < 5:
+                count += 1
+                trading_date = TradingDayHelper.get_pre_trading_day(trading_date)
+                if bar_provider.bar_type == EnumBarType.second:
+                    bar_provider = BarProvider()
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    tick_series = self.__load_history_tick_series(market, instrument_id, trading_date)
+                    for tick in tick_series:
+                        bar_provider.add_tick(tick)
+                elif (bar_provider.bar_type == EnumBarType.minute) | (bar_provider.bar_type == EnumBarType.hour):
+                    bar_provider = BarProvider()
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    bar_series_min = self.load_min_bar_series(market, instrument_id, trading_date)
+                    for bar in bar_series_min:
+                        bar_provider.add_bar(bar)
+                elif bar_provider.bar_type == EnumBarType.day:
+                    begin_date = TradingDayHelper.get_pre_trading_day(trading_date, interval - 1)
+                    bar_provider = BarProvider()
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    bar_series_day = self.load_day_bar_series(market, instrument_id, begin_date, end_trading_date)
+                    trading_date = begin_date
+                    for bar in bar_series_day:
+                        bar_provider.add_bar(bar)
+                else:
+                    raise Exception("不支持的k线:" + str(bar_type))
+
+                bar_provider.bar_series.extend(bar_series)
+                bar_series = bar_provider.bar_series
+
+                if len(bar_series) >= max_length:
+                    break
+
+        bar_provider = BarProvider()
+        bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
+        for bar in bar_series:
+            bar_provider.bar_series.append(bar)
+
+        remove_length = len(bar_provider.bar_series) - max_length
+        if remove_length > 0:
+            del bar_provider.bar_series[0:remove_length]
+
+        return bar_provider.bar_series
+
+    def load_bar_series_by_length_limit_end_time(self, market, instrument_id, interval, bar_type, max_length, end_time, *instrument_ids):
+        """
+        根据结束时间加载指定回溯根数的历史K线（K线数据都小于等于结束时间）
+        :param market:
+        :param instrument_id:
+        :param interval:
+        :param bar_type:
+        :param max_length:
+        :param end_time:
+        :param instrument_ids:
+        :return:
+        """
+        # 这里为了提升取数据的速度,根据时间预计算根数,不足再补
+        end_trading_date = YfTimeHelper.get_trading_day(end_time)
+        end_trading_date = TradingDayHelper.get_last_trading_day(end_trading_date)
+        lst_date_time_slices_one_day = BaseBarHelper.create_one_day_date_time_slice(
+            self.instrument_manager, instrument_id, end_trading_date, interval, bar_type, *instrument_ids)
+        if len(lst_date_time_slices_one_day) > 0:
+            n_one_day_count = len(lst_date_time_slices_one_day)
+        else:
+            n_one_day_count = 1
+
+        n_trading_days = int(math.ceil(max_length * 1.0 / n_one_day_count))
+        if bar_type == EnumBarType.day:
+            n_trading_days = n_trading_days * interval
+        else:
+            n_trading_days = n_trading_days
+
+        begin_trading_date = TradingDayHelper.get_pre_trading_day(end_trading_date, n_trading_days - 1)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
+        bar_provider = BarProvider()
+        trading_time = self.instrument_manager.get_trading_time(begin_trading_date, instrument_id)
+        begin_time = TradingDayHelper.get_natural_date_time(begin_trading_date, trading_time[0].begin_time)
+        bar_provider.create_bar_provider_by_date_time(self.instrument_manager, instrument_id, begin_time, end_time, interval, bar_type,
+                                                      *instrument_ids)
+        if bar_provider.bar_type == EnumBarType.second:
+            for trading_day in lst_trading_days:
+                tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
+                for tick in tick_series:
+                    bar_provider.add_tick(tick)
+        elif (bar_provider.bar_type == EnumBarType.minute) | (bar_provider.bar_type == EnumBarType.hour):
+            bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_min:
+                bar_provider.add_bar(bar)
+        elif bar_provider.bar_type == EnumBarType.day:
+            bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+            for bar in bar_series_day:
+                bar_provider.add_bar(bar)
+        else:
+            raise Exception("不支持的k线:" + str(bar_type))
+
+        bar_series = bar_provider.bar_series
+        if len(bar_provider.bar_series) < max_length:
+            trading_date = begin_trading_date
+            count = 0
+            while count < 5:
+                count += 1
+                trading_date = TradingDayHelper.get_pre_trading_day(trading_date)
+                if bar_provider.bar_type == EnumBarType.second:
+                    bar_provider = BarProvider()
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    tick_series = self.__load_history_tick_series(market, instrument_id, trading_date)
+                    for tick in tick_series:
+                        bar_provider.add_tick(tick)
+                elif (bar_provider.bar_type == EnumBarType.minute) | (bar_provider.bar_type == EnumBarType.hour):
+                    bar_provider = BarProvider()
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    bar_series_min = self.load_min_bar_series(market, instrument_id, trading_date)
+                    for bar in bar_series_min:
+                        bar_provider.add_bar(bar)
+                elif bar_provider.bar_type == EnumBarType.day:
+                    begin_date = TradingDayHelper.get_pre_trading_day(trading_date, interval - 1)
+                    bar_provider = BarProvider()
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    bar_series_day = self.load_day_bar_series(market, instrument_id, begin_date, end_trading_date)
+                    trading_date = begin_date
+                    for bar in bar_series_day:
+                        bar_provider.add_bar(bar)
+                else:
+                    raise Exception("不支持的k线:" + str(bar_type))
+
+                bar_provider.bar_series.extend(bar_series)
+                bar_series = bar_provider.bar_series
+
+                if len(bar_series) >= max_length:
+                    break
+
+        bar_provider = BarProvider()
+        bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
+        for bar in bar_series:
+            bar_provider.bar_series.append(bar)
+
+        remove_length = len(bar_provider.bar_series) - max_length
+        if remove_length > 0:
+            del bar_provider.bar_series[0:remove_length]
+
+        return bar_provider.bar_series
+
     def get_tick_series_by_time(self, market, instrument_id, begin_time, end_time):
+        """
+        实盘根据时间区间获取Tick数据
+        注意：若之前已经获取过品种的Tick数据，则直接从缓存返回Tick数据，不会根据变化的begin_time和end_time从新加载Tick数据
+        :param market:市场
+        :param instrument_id:合约编号
+        :param begin_time:开始时间
+        :param end_time:截止时间
+        :return:
+        """
         if instrument_id not in self.__tick_series_map.keys():
-            all_ticks = self.load_tick_series(market, instrument_id, begin_time, end_time)
+            all_ticks = self.load_tick_series_real(market, instrument_id, begin_time, end_time)
             self.__tick_series_map[instrument_id] = all_ticks
         else:
             all_ticks = self.__tick_series_map[instrument_id]
         return all_ticks
 
     def get_tick_series_by_length(self, market, instrument_id, end_time, length):
+        """
+        实盘根据时间区间获取Tick数据
+        注意：
+        若之前已经获取过品种的Tick数据，则直接从缓存返回Tick数据，
+        若之前没有获取过品种的Tick数据，则加载Tick数据到缓存，并返回
+        :param market:市场
+        :param instrument_id:合约编号
+        :param end_time:截止时间
+        :param length:长度
+        :return:
+        """
         tick_series = []
         if instrument_id not in self.__tick_series_map.keys():
             lst_ticks = []
-            trading_date = TradingDayHelper.get_last_trading_day(end_time)
+            end_trading_date = YfTimeHelper.get_trading_day(end_time)
+            trading_date = TradingDayHelper.get_last_trading_day(end_trading_date)
             while len(lst_ticks) < length:
+                temp_lst_ticks = lst_ticks.copy()
                 temp_tick_series = self.load_tick_series(market, instrument_id, trading_date)
+                lst_ticks.clear()
                 for tick in temp_tick_series:
-                    lst_ticks.insert(0, tick)
+                    if tick.end_time <= end_time:
+                        lst_ticks.append(tick)
+                lst_ticks.extend(temp_lst_ticks)
                 trading_date = TradingDayHelper.get_pre_trading_day(trading_date)
-            i = len(lst_ticks) - length
-            while i < len(lst_ticks):
-                tick_series.append(lst_ticks[i])
+            tick_series = lst_ticks[-length:]
             self.__tick_series_map[instrument_id] = tick_series
         else:
             tick_series = self.__tick_series_map[instrument_id]
         return tick_series
 
     def get_bar_series_by_time(self, market, instrument_id, interval, bar_type, begin_time, end_time, restore=EnumRestoration.不复权, *instrument_ids):
+        """
+        实盘根据时间区间获取K线
+        历史K线从历史数据直接加载组装
+        当日K线根据Tick数据组装
+        最后合并历史和当日K线，并返回
+        注意：
+        若之前已经获取过品种的K线数据，则直接从缓存返回K线，(判断条件：interval，bar_type的唯一性)
+        若之前没有获取过品种的K线数据，则加载K线数据到缓存，并返回
+        :param market:市场
+        :param instrument_id:合约编号
+        :param interval:间隔
+        :param bar_type:K线类型
+        :param begin_time:开始时间
+        :param end_time:截止时间
+        :param restore:复权方式
+        :param instrument_ids:参与求交易时间交集的品种
+        :return:
+        """
         bar_providers = []
         if instrument_id in self.__bar_series_map.keys():
             bar_providers = self.__bar_series_map[instrument_id]
@@ -194,7 +624,6 @@ class QiDataController:
             self.__bar_series_map[instrument_id] = bar_providers
 
         # 已经获取过直接返回
-        bar_provider = None
         if len(bar_providers) > 0:
             bar_provider = next((data for data in bar_providers if (data.interval == interval) & (data.bar_type == bar_type)), None)
             if bar_provider is not None:
@@ -208,25 +637,26 @@ class QiDataController:
         else:
             end_trading_date = last_trading_day
         lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
+        end_time = end_trading_date + datetime.timedelta(hours=16)  # 目前国内都是15点收盘
         if bar_type == EnumBarType.second:
             bar_provider = BarProvider()
-            bar_provider.create_bar_provider_by_period(self.instrument_manager, instrument_id, begin_time, end_trading_date, interval, bar_type,
-                                                       *instrument_ids)
+            bar_provider.create_bar_provider_by_date_time(self.instrument_manager, instrument_id, begin_time, end_time, interval, bar_type,
+                                                          *instrument_ids)
             for trading_day in lst_trading_days:
                 tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
                 for tick in tick_series:
                     bar_provider.add_tick(tick)
         elif (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
             bar_provider = BarProvider()
-            bar_provider.create_bar_provider_by_period(self.instrument_manager, instrument_id, begin_time, end_trading_date, interval, bar_type,
-                                                       *instrument_ids)
+            bar_provider.create_bar_provider_by_date_time(self.instrument_manager, instrument_id, begin_time, end_time, interval, bar_type,
+                                                          *instrument_ids)
             bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
             for bar in bar_series_min:
                 bar_provider.add_bar(bar)
         elif bar_type == EnumBarType.day:
             bar_provider = BarProvider()
-            bar_provider.create_bar_provider_by_period(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval, bar_type,
-                                                       *instrument_ids)
+            bar_provider.create_bar_provider_by_date_time(self.instrument_manager, instrument_id, begin_time, end_time, interval, bar_type,
+                                                          *instrument_ids)
             bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
             for bar in bar_series_day:
                 bar_provider.add_bar(bar)
@@ -235,7 +665,7 @@ class QiDataController:
 
         bar_series = bar_provider.bar_series
         bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
+        bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
         for bar in bar_series:
             bar_provider.bar_series.append(bar)
 
@@ -267,6 +697,24 @@ class QiDataController:
         return bar_provider.bar_series
 
     def get_bar_series_by_length(self, market, instrument_id, interval, bar_type, max_length, end_time, restore=EnumRestoration.不复权, *instrument_ids):
+        """
+        实盘根据回溯根数获取K线
+        历史K线从历史数据直接加载组装
+        当日K线根据Tick数据组装
+        最后合并历史和当日K线，并返回
+        注意：
+        若之前已经获取过品种的K线数据，则直接从缓存返回K线，(判断条件：interval，bar_type的唯一性)
+        若之前没有获取过品种的K线数据，则加载K线数据到缓存，并返回
+        :param market:市场
+        :param instrument_id:合约编号
+        :param interval:间隔
+        :param bar_type:K线类型
+        :param max_length:回溯根数
+        :param end_time:截止时间
+        :param restore:复权方式
+        :param instrument_ids:参与求交易时间交集的品种
+        :return:
+        """
         bar_providers = []
         if instrument_id in self.__bar_series_map.keys():
             bar_providers = self.__bar_series_map[instrument_id]
@@ -285,8 +733,9 @@ class QiDataController:
             end_trading_date = TradingDayHelper.get_pre_trading_day(last_trading_day)
         else:
             end_trading_date = last_trading_day
-        lst_date_time_slices_one_day = BaseBarHelper.create_day_date_time_slice(self.instrument_manager, instrument_id, end_trading_date, interval, bar_type,
-                                                                                *instrument_ids)
+        lst_date_time_slices_one_day = BaseBarHelper.create_one_day_date_time_slice(self.instrument_manager, instrument_id, end_trading_date, interval,
+                                                                                    bar_type,
+                                                                                    *instrument_ids)
         if len(lst_date_time_slices_one_day) > 0:
             n_one_day_count = len(lst_date_time_slices_one_day)
         else:
@@ -301,8 +750,8 @@ class QiDataController:
         begin_trading_date = TradingDayHelper.get_pre_trading_day(end_trading_date, n_trading_days - 1)
         lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
         bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_period(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval, bar_type,
-                                                   *instrument_ids)
+        bar_provider.create_bar_provider_by_date_time(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval, bar_type,
+                                                      *instrument_ids)
         if bar_provider.bar_type == EnumBarType.second:
             for trading_day in lst_trading_days:
                 tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
@@ -328,20 +777,20 @@ class QiDataController:
                 trading_date = TradingDayHelper.get_pre_trading_day(trading_date)
                 if bar_provider.bar_type == EnumBarType.second:
                     bar_provider = BarProvider()
-                    bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
                     tick_series = self.__load_history_tick_series(market, instrument_id, trading_date)
                     for tick in tick_series:
                         bar_provider.add_tick(tick)
                 elif (bar_provider.bar_type == EnumBarType.minute) | (bar_provider.bar_type == EnumBarType.hour):
                     bar_provider = BarProvider()
-                    bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
                     bar_series_min = self.load_min_bar_series(market, instrument_id, trading_date)
                     for bar in bar_series_min:
                         bar_provider.add_bar(bar)
                 elif bar_provider.bar_type == EnumBarType.day:
                     begin_date = TradingDayHelper.get_pre_trading_day(trading_date, interval - 1)
                     bar_provider = BarProvider()
-                    bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
+                    bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
                     bar_series_day = self.load_day_bar_series(market, instrument_id, begin_date, end_trading_date)
                     trading_date = begin_date
                     for bar in bar_series_day:
@@ -356,7 +805,7 @@ class QiDataController:
                     break
 
         bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
+        bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
         for bar in bar_series:
             bar_provider.bar_series.append(bar)
 
@@ -418,145 +867,43 @@ class QiDataController:
                     bar_provider.bar_series[-1].close = last_tick.last_price
                     bar_provider.bar_series[-1].trading_date = last_tick.trading_day
 
-    def load_bar_series_by_date(self, market, instrument_id, interval, bar_type, begin_date, end_date, *instrument_ids):
-        begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
-        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
-        begin_trading_date = YfTimeHelper.get_trading_day(begin_date)
-        end_trading_date = YfTimeHelper.get_trading_day(end_date)
-        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
-        bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_trading_day_period(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval,
-                                                               bar_type, *instrument_ids)
-        if bar_type == EnumBarType.second:
-            for trading_day in lst_trading_days:
-                tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
-                for tick in tick_series:
-                    bar_provider.add_tick(tick)
-        elif (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
-            bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
-            for bar in bar_series_min:
-                bar_provider.add_bar(bar)
-        elif bar_type == EnumBarType.day:
-            bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
-            for bar in bar_series_day:
-                bar_provider.add_bar(bar)
+    def load_pre_close_by_tick(self, market, instrument_id, trading_date):
+        """
+        从Tick获取pre_close
+        :param market:
+        :param instrument_id:
+        :param trading_date:
+        :return:
+        """
+        path = self.__future_tick_path
+        tick_series = []
+        try:
+            file_path = os.path.join(path, trading_date.strftime('%Y%m%d'))
+            file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
+            if instrument_id.lower() != 'index':
+                instrument = self.instrument_manager[instrument_id.split('.')[0]]
+                tick_stream = TickStream(market, instrument_id, instrument.exchange_id, file_path)
+                tick_stream.read_by_count(tick_series, 0, 5)
+        except Exception as e:
+            print(str(e))
+
+        if len(tick_series) > 0:
+            pre_close = tick_series[-1].pre_close_price
+            if pre_close != 0:
+                return pre_close
+            else:
+                print('pre_close:{0}为0,请注意.....'.format(pre_close))
+                return pre_close
         else:
-            raise Exception("不支持的k线:" + str(bar_type))
-
-        return bar_provider.bar_series
-
-    def load_bar_series_by_date_time_period(self, market, instrument_id, interval, bar_type, begin_date, end_date, *instrument_ids):
-        begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
-        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
-        begin_trading_date = YfTimeHelper.get_trading_day(begin_date)
-        end_trading_date = YfTimeHelper.get_trading_day(end_date)
-        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
-        bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_period(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval, bar_type,
-                                                   *instrument_ids)
-        if bar_type == EnumBarType.second:
-            for trading_day in lst_trading_days:
-                tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
-                for tick in tick_series:
-                    bar_provider.add_tick(tick)
-        elif (bar_type == EnumBarType.minute) | (bar_type == EnumBarType.hour):
-            bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
-            for bar in bar_series_min:
-                bar_provider.add_bar(bar)
-        elif bar_type == EnumBarType.day:
-            bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
-            for bar in bar_series_day:
-                bar_provider.add_bar(bar)
-        else:
-            raise Exception("不支持的k线:" + str(bar_type))
-
-        return bar_provider.bar_series
-
-    def load_bar_series_by_length(self, market, instrument_id, interval, bar_type, max_length, end_date, *instrument_ids):
-        # 这里为了提升取数据的速度,根据时间预计算根数,不足再补
-        end_trading_date = TradingDayHelper.get_last_trading_day(end_date)
-        lst_date_time_slices_one_day = BaseBarHelper.create_day_date_time_slice(self.instrument_manager, instrument_id, end_trading_date, interval, bar_type,
-                                                                                *instrument_ids)
-        if len(lst_date_time_slices_one_day) > 0:
-            n_one_day_count = len(lst_date_time_slices_one_day)
-        else:
-            n_one_day_count = 1
-
-        n_trading_days = int(math.ceil(max_length * 1.0 / n_one_day_count))
-        if bar_type == EnumBarType.day:
-            n_trading_days = n_trading_days * interval
-        else:
-            n_trading_days = n_trading_days
-
-        begin_trading_date = TradingDayHelper.get_pre_trading_day(end_trading_date, n_trading_days - 1)
-        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_date)
-        bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_period(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, interval, bar_type,
-                                                   *instrument_ids)
-        if bar_provider.bar_type == EnumBarType.second:
-            for trading_day in lst_trading_days:
-                tick_series = self.__load_history_tick_series(market, instrument_id, trading_day)
-                for tick in tick_series:
-                    bar_provider.add_tick(tick)
-        elif (bar_provider.bar_type == EnumBarType.minute) | (bar_provider.bar_type == EnumBarType.hour):
-            bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
-            for bar in bar_series_min:
-                bar_provider.add_bar(bar)
-        elif bar_provider.bar_type == EnumBarType.day:
-            bar_series_day = self.load_day_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
-            for bar in bar_series_day:
-                bar_provider.add_bar(bar)
-        else:
-            raise Exception("不支持的k线:" + str(bar_type))
-
-        bar_series = bar_provider.bar_series
-        if len(bar_provider.bar_series) < max_length:
-            trading_date = begin_trading_date
-            count = 0
-            while count < 5:
-                count += 1
-                trading_date = TradingDayHelper.get_pre_trading_day(trading_date)
-                if bar_provider.bar_type == EnumBarType.second:
-                    bar_provider = BarProvider()
-                    bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
-                    tick_series = self.__load_history_tick_series(market, instrument_id, trading_date)
-                    for tick in tick_series:
-                        bar_provider.add_tick(tick)
-                elif (bar_provider.bar_type == EnumBarType.minute) | (bar_provider.bar_type == EnumBarType.hour):
-                    bar_provider = BarProvider()
-                    bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
-                    bar_series_min = self.load_min_bar_series(market, instrument_id, trading_date)
-                    for bar in bar_series_min:
-                        bar_provider.add_bar(bar)
-                elif bar_provider.bar_type == EnumBarType.day:
-                    begin_date = TradingDayHelper.get_pre_trading_day(trading_date, interval - 1)
-                    bar_provider = BarProvider()
-                    bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, trading_date, interval, bar_type, *instrument_ids)
-                    bar_series_day = self.load_day_bar_series(market, instrument_id, begin_date, end_trading_date)
-                    trading_date = begin_date
-                    for bar in bar_series_day:
-                        bar_provider.add_bar(bar)
-                else:
-                    raise Exception("不支持的k线:" + str(bar_type))
-
-                for bar in bar_provider.bar_series:
-                    bar_series.insert(0, bar)
-
-                if len(bar_series) >= max_length:
-                    break
-
-        bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_trading_day(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
-        for bar in bar_series:
-            bar_provider.bar_series.append(bar)
-
-        remove_length = len(bar_provider.bar_series) - max_length
-        if remove_length > 0:
-            del bar_provider.bar_series[0:remove_length]
-
-        return bar_provider.bar_series
+            print('load_pre_close_by_tick:未取到Tick数据...,请注意.....')
+            return 0
 
     def on_bar(self, bar):
+        """
+        实盘on_bar维护策略获取的K线
+        :param bar:
+        :return:
+        """
         if bar.instrument_id in self.__bar_series_map.keys():
             bar_providers = self.__bar_series_map[bar.instrument_id]
             for bar_provider in bar_providers:

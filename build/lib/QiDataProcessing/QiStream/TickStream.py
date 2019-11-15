@@ -266,14 +266,14 @@ class TickStream:
 
         for i in range(0, tick_len):
             tick = Tick()
-            tick.market = self.__market,
-            tick.open_price = self.__open_price,
-            tick.pre_close_price = self.__pre_close_price,
-            tick.instrument_id = self.__instrument_id,
-            tick.exchange_id = self.__exchange_id,
-            tick.pre_open_interest = self.__pre_interest,
-            tick.pre_settlement_price = self.__pre_settlement_price,
-            tick.up_limit = self.__up_limit,
+            tick.market = self.__market
+            tick.open_price = self.__open_price
+            tick.pre_close_price = self.__pre_close_price
+            tick.instrument_id = self.__instrument_id
+            tick.exchange_id = self.__exchange_id
+            tick.pre_open_interest = self.__pre_interest
+            tick.pre_settlement_price = self.__pre_settlement_price
+            tick.up_limit = self.__up_limit
             tick.drop_limit = self.__down_limit
 
             hour = reader.read_byte()
@@ -337,14 +337,14 @@ class TickStream:
 
         for i in range(0, tick_len):
             tick = Tick()
-            tick.market = self.__market,
-            tick.open_price = self.__open_price,
-            tick.pre_close_price = self.__pre_close_price,
-            tick.instrument_id = self.__instrument_id,
-            tick.exchange_id = self.__exchange_id,
-            tick.pre_open_interest = self.__pre_interest,
-            tick.pre_settlement_price = self.__pre_settlement_price,
-            tick.up_limit = self.__up_limit,
+            tick.market = self.__market
+            tick.open_price = self.__open_price
+            tick.pre_close_price = self.__pre_close_price
+            tick.instrument_id = self.__instrument_id
+            tick.exchange_id = self.__exchange_id
+            tick.pre_open_interest = self.__pre_interest
+            tick.pre_settlement_price = self.__pre_settlement_price
+            tick.up_limit = self.__up_limit
             tick.drop_limit = self.__down_limit
 
             hour = reader.read_byte()
@@ -467,14 +467,14 @@ class TickStream:
 
             tick = Tick()
             tick.local_time = QiCore.convert_c_sharp_ticks_to_py_date_time(reader.read_int64())
-            tick.market = self.__market,
-            tick.open_price = self.__open_price,
-            tick.pre_close_price = self.__pre_close_price,
-            tick.instrument_id = self.__instrument_id,
-            tick.exchange_id = self.__exchange_id,
-            tick.pre_open_interest = self.__pre_interest,
-            tick.pre_settlement_price = self.__pre_settlement_price,
-            tick.up_limit = self.__up_limit,
+            tick.market = self.__market
+            tick.open_price = self.__open_price
+            tick.pre_close_price = self.__pre_close_price
+            tick.instrument_id = self.__instrument_id
+            tick.exchange_id = self.__exchange_id
+            tick.pre_open_interest = self.__pre_interest
+            tick.pre_settlement_price = self.__pre_settlement_price
+            tick.up_limit = self.__up_limit
             tick.drop_limit = self.__down_limit
             tick.date_time = date_time
             tick.trading_day = self.__trading_day
@@ -540,14 +540,14 @@ class TickStream:
 
             tick = Tick()
             tick.local_time = datetime.datetime.min
-            tick.market = self.__market,
-            tick.open_price = self.__open_price,
-            tick.pre_close_price = self.__pre_close_price,
-            tick.instrument_id = self.__instrument_id,
-            tick.exchange_id = self.__exchange_id,
-            tick.pre_open_interest = self.__pre_interest,
-            tick.pre_settlement_price = self.__pre_settlement_price,
-            tick.up_limit = self.__up_limit,
+            tick.market = self.__market
+            tick.open_price = self.__open_price
+            tick.pre_close_price = self.__pre_close_price
+            tick.instrument_id = self.__instrument_id
+            tick.exchange_id = self.__exchange_id
+            tick.pre_open_interest = self.__pre_interest
+            tick.pre_settlement_price = self.__pre_settlement_price
+            tick.up_limit = self.__up_limit
             tick.drop_limit = self.__down_limit
             tick.date_time = date_time
             tick.trading_day = self.__trading_day
