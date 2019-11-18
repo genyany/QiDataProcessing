@@ -265,7 +265,7 @@ class Tick:
 
     def to_string(self):
         string_builder = ""
-        string_builder += self.market
+        string_builder += str(self.market)
         string_builder += ("[" + self.instrument_id + "]")
         string_builder += ("交易日" + self.trading_day.strftime('%Y/%m/%d')) + ","
         string_builder += ("自然时" + self.date_time.strftime('%Y-%m-%d %H:%M:%S.%f')) + ","

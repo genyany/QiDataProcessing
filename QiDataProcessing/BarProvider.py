@@ -90,13 +90,26 @@ class BarProvider:
 
     @property
     def is_end(self):
+        """
+        是否结束
+        :return:
+        """
         return self.__pos_time >= len(self.__lst_date_time_slices)
 
     @property
     def bar_series(self):
+        """
+        K线
+        :return:
+        """
         return self.__bar_series
 
     def add_bar(self, new_bar):
+        """
+        添加bar
+        :param new_bar:
+        :return:
+        """
         if new_bar is None:
             self.change_state = 4
             return
@@ -159,6 +172,11 @@ class BarProvider:
         self.lock.release()
 
     def add_tick(self, tick):
+        """
+        添加tcik
+        :param tick:
+        :return:
+        """
         if tick is None:
             self.change_state = 4
             return

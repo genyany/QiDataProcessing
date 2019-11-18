@@ -910,3 +910,16 @@ class QiDataController:
                 bar_provider.add_bar(bar)
         else:
             return
+
+    def on_tick(self, tick):
+        """
+        实盘on_tick维护策略获取的K线
+        :param tick:
+        :return:
+        """
+        if tick.instrument_id in self.__bar_series_map.keys():
+            bar_providers = self.__bar_series_map[tick.instrument_id]
+            for bar_provider in bar_providers:
+                bar_provider.add_tick(tick)
+        else:
+            return
