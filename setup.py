@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='QiDataProcessing',
-    version='1.4.2',
+    version='1.4.3',
     description=(
         'read data from custom bytes file'
     ),

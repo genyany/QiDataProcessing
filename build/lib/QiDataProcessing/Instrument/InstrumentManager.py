@@ -22,7 +22,7 @@ class InstrumentManager:
         self.__all_instruments = {}
         self.__all_exchanges = {}
         self.__all_products = {}
-        self.__trading_frame_manager = TradingFrameManager()
+        self.trading_frame_manager = TradingFrameManager()
 
     def __getitem__(self, item):
         if item in self.__all_instruments.keys():
@@ -74,9 +74,9 @@ class InstrumentManager:
 
     def __get_trading_time(self, trading_day, instrument_id):
         instrument = self[instrument_id]
-        if (instrument is not None) & (self.__trading_frame_manager is not None):
+        if (instrument is not None) & (self.trading_frame_manager is not None):
             product_id = InstrumentManager.get_product_id(instrument_id)
-            return self.__trading_frame_manager.get_trading_time_slices(trading_day, instrument.market, instrument.exchange_id, product_id)
+            return self.trading_frame_manager.get_trading_time_slices(trading_day, instrument.market, instrument.exchange_id, product_id)
 
         if instrument is None:
             product_id = InstrumentManager.get_product_id(instrument_id)
@@ -207,7 +207,7 @@ class InstrumentManager:
 
     def load(self, config_directory, market):
         try:
-            self.__trading_frame_manager.load(config_directory)
+            self.trading_frame_manager.load(config_directory)
 
             if market == EnumMarket.期货:
                 future_manager = FutureManager()
@@ -260,9 +260,9 @@ class InstrumentManager:
 
     def get_living_time(self, trading_day, instrument_id):
         instrument = self[instrument_id]
-        if (instrument is not None) & (self.__trading_frame_manager is not None):
+        if (instrument is not None) & (self.trading_frame_manager is not None):
             product_id = InstrumentManager.get_product_id(instrument_id)
-            return self.__trading_frame_manager.get_living_time(trading_day, instrument.market, instrument.exchange_id, product_id)
+            return self.trading_frame_manager.get_living_time(trading_day, instrument.market, instrument.exchange_id, product_id)
 
         if instrument is None:
             product_id = InstrumentManager.get_product_id(instrument_id)
