@@ -842,7 +842,12 @@ class QiDataController:
                     return
 
                 first_tick = tick_series[0]
-                temp_tick_series = list((data for data in tick_series if data.get('date_time') <= end_time))[-1]
+                temp_tick_series = []
+                for data in tick_series:
+                    if data.date_time <= end_time:
+                        temp_tick_series.append(data)
+                if len(temp_tick_series) == 0:
+                    return
                 last_tick = temp_tick_series[-1]
                 if (len(bar_provider.bar_series) == 0) | (bar_provider.bar_series[-1].trading_date != first_tick.trading_day):
                     bar = Bar()

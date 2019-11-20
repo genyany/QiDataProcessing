@@ -72,9 +72,18 @@ end_time = datetime.datetime(trading_day.year, trading_day.month, trading_day.da
 #     index += 1
 
 
-end_trading_date = datetime.datetime(2019, 10, 9)
-instrument_id = "rb9999"
-bar_series = qi_data_controller.load_tick_series(EnumMarket.期货, instrument_id, end_trading_date)
+# end_trading_date = datetime.datetime(2019, 10, 9)
+# instrument_id = "rb9999"
+# bar_series = qi_data_controller.load_tick_series(EnumMarket.期货, instrument_id, end_trading_date)
+# index = 1
+# for bar in bar_series:
+#     print("["+instrument_id+"]"+str(index)+":"+bar.to_string())
+#     index += 1
+
+qi_data_controller.trading_day = datetime.datetime(2016, 1, 4, 0, 0, 0)
+end_time = datetime.datetime(2016, 1, 4, 8, 59, 0)
+instrument_id = "ni9999"
+bar_series = qi_data_controller.get_bar_series_by_length(EnumMarket.期货, instrument_id, 1, EnumBarType.day, 200, end_time)
 index = 1
 for bar in bar_series:
     print("["+instrument_id+"]"+str(index)+":"+bar.to_string())
