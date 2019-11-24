@@ -25,3 +25,6 @@ python setup.py bdist_wheel upload
 sudo pip install twine
 
 twine upload dist/*
+
+twine upload dist/QiDataProcessing-1.4.7.tar.gz
+pip install -U QiDataProcessing==1.4.7
