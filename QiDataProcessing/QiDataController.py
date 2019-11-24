@@ -441,7 +441,8 @@ class QiDataController:
                     break
 
         bar_provider = BarProvider()
-        bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, self.trading_day, interval, bar_type, *instrument_ids)
+        next_trading_date = TradingDayHelper.get_next_trading_day(end_trading_date)
+        bar_provider.create_bar_provider_by_trading_date(self.instrument_manager, instrument_id, next_trading_date, interval, bar_type, *instrument_ids)
         for bar in bar_series:
             bar_provider.bar_series.append(bar)
 

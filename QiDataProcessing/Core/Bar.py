@@ -181,7 +181,7 @@ class Bar:
     def open_bar(self, begin_time, tick, bar):
         self.begin_time = begin_time
         self._high = self._low = self._open = self._close = tick.last_price
-        if not any(bar):
+        if bar is None:
             if (tick.high_price > 0.0) & (tick.high_price < 10000000000.0):
                 self.high = tick.high_price
             if (tick.low_price > 0.0) & (tick.low_price < 10000000000.0):
