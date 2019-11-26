@@ -452,6 +452,83 @@ class QiDataController:
 
         return bar_provider.bar_series
 
+    def load_night_am_pm_bar_series_by_date(self, market, instrument_id, begin_date, end_date, *instrument_ids):
+        """
+        根据日期区间加载历史K线
+        :param market:
+        :param instrument_id:
+        :param begin_date:
+        :param end_date:
+        :param instrument_ids:
+        :return:
+        """
+        begin_date = datetime.datetime(begin_date.year, begin_date.month, begin_date.day)
+        end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
+        begin_trading_date = TradingDayHelper.get_first_trading_day(begin_date)
+        end_trading_date = TradingDayHelper.get_last_trading_day(end_date)
+        bar_provider = BarProvider()
+        bar_provider.create_night_am_pm_bar_provider_by_date(self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, *instrument_ids)
+        bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+        for bar in bar_series_min:
+            bar_provider.add_bar(bar)
+
+        return bar_provider.bar_series
+
+    def load_night_am_pm_bar_series_by_length(self, market, instrument_id, max_length, end_date, *instrument_ids):
+        """
+        根据结束日期加载指定回溯根数的历史K线（K线数据包含结束日期）
+        :param market:
+        :param instrument_id:
+        :param max_length:
+        :param end_date:
+        :param instrument_ids:
+        :return:
+        """
+        # 这里为了提升取数据的速度,根据时间预计算根数,不足再补
+        end_trading_date = TradingDayHelper.get_last_trading_day(end_date)
+        n_one_day_count = 2  # 默认等2 这样可以预载多一点的K线，再做切除
+
+        n_trading_days = int(math.ceil(max_length * 1.0 / n_one_day_count))
+
+        begin_trading_date = TradingDayHelper.get_pre_trading_day(end_trading_date, n_trading_days - 1)
+        bar_provider = BarProvider()
+        bar_provider.create_night_am_pm_bar_provider_by_date(
+            self.instrument_manager, instrument_id, begin_trading_date, end_trading_date, *instrument_ids)
+        bar_series_min = self.load_min_bar_series(market, instrument_id, begin_trading_date, end_trading_date)
+        for bar in bar_series_min:
+            bar_provider.add_bar(bar)
+
+        bar_series = bar_provider.bar_series
+        if len(bar_provider.bar_series) < max_length:
+            trading_date = begin_trading_date
+            count = 0
+            while count < 5:
+                count += 1
+                trading_date = TradingDayHelper.get_pre_trading_day(trading_date)
+                bar_provider = BarProvider()
+                bar_provider.create_night_am_pm_bar_provider_by_date(self.instrument_manager, instrument_id, trading_date, trading_date, *instrument_ids)
+                bar_series_min = self.load_min_bar_series(market, instrument_id, trading_date)
+                for bar in bar_series_min:
+                    bar_provider.add_bar(bar)
+
+                bar_provider.bar_series.extend(bar_series)
+                bar_series = bar_provider.bar_series
+
+                if len(bar_series) >= max_length:
+                    break
+
+        bar_provider = BarProvider()
+        next_trading_date = TradingDayHelper.get_next_trading_day(end_trading_date)
+        bar_provider.create_night_am_pm_bar_provider_by_date(self.instrument_manager, instrument_id, next_trading_date, next_trading_date, *instrument_ids)
+        for bar in bar_series:
+            bar_provider.bar_series.append(bar)
+
+        remove_length = len(bar_provider.bar_series) - max_length
+        if remove_length > 0:
+            del bar_provider.bar_series[0:remove_length]
+
+        return bar_provider.bar_series
+
     def load_bar_series_by_length_limit_end_time(self, market, instrument_id, interval, bar_type, max_length, end_time, *instrument_ids):
         """
         根据结束时间加载指定回溯根数的历史K线（K线数据都小于等于结束时间）

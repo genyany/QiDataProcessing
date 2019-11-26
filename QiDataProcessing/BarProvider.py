@@ -88,6 +88,21 @@ class BarProvider:
         else:
             raise Exception("不支持的K线类型")
 
+    def create_night_am_pm_bar_provider_by_date(self, instrument_manager, instrument_id, begin_date, end_date, *instrument_ids):
+        """
+        根据日期区间创建K线提供器,只切分夜盘 上午盘 下午盘
+        :param instrument_manager:
+        :param instrument_id:
+        :param begin_date:
+        :param end_date:
+        :param instrument_ids:
+        """
+        self.instrument_id = instrument_id
+        self.interval = 1
+        self.bar_type = EnumBarType.hour
+        self.__lst_date_time_slices = BaseBarHelper.create_night_am_pm_date_time_slice_by_date(
+            instrument_manager, instrument_id, begin_date, end_date, *instrument_ids)
+
     @property
     def is_end(self):
         """

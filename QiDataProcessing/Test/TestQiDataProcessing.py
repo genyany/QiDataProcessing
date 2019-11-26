@@ -2,6 +2,7 @@ import time
 
 import pandas as pd
 
+from QiDataProcessing.BaseBarHelper import BaseBarHelper
 from QiDataProcessing.Core.EnumMarket import EnumMarket
 from QiDataProcessing.Core.TradingDayHelper import TradingDayHelper
 from QiDataProcessing.Instrument.InstrumentManager import InstrumentManager
@@ -32,8 +33,25 @@ interval = 5
 bar_type = EnumBarType.day
 instrument_id_a = "IF9999"
 instrument_id_b = "rb9999"
-begin_time = datetime.datetime(2019, 7, 10)
-end_time = datetime.datetime(trading_day.year, trading_day.month, trading_day.day)
+begin_date = datetime.datetime(2019, 11, 8)
+end_date = datetime.datetime(2019, 11, 15)
+
+
+# bar_series = qi_data_controller.load_night_am_pm_bar_series_by_length(EnumMarket.期货, instrument_id_b, 20, end_date)
+# index = 1
+# for bar in bar_series:
+#     print("["+instrument_id_a+"]"+str(index)+":"+bar.to_string())
+#     index += 1
+
+bar_series = qi_data_controller.load_night_am_pm_bar_series_by_date(EnumMarket.期货, instrument_id_b, begin_date, end_date)
+index = 1
+for bar in bar_series:
+    print("["+instrument_id_a+"]"+str(index)+":"+bar.to_string())
+    index += 1
+
+# BaseBarHelper.create_night_am_pm_date_time_slice_by_date(
+# qi_data_controller.instrument_manager, 'ag9999', datetime.datetime(2019, 7, 1), datetime.datetime(2019, 7, 10))
+
 #
 # bar_series = qi_data_controller.get_bar_series_by_time(EnumMarket.期货, instrument_id_a, interval, bar_type, begin_time, end_time)
 # index = 1
@@ -80,14 +98,14 @@ end_time = datetime.datetime(trading_day.year, trading_day.month, trading_day.da
 #     print("["+instrument_id+"]"+str(index)+":"+bar.to_string())
 #     index += 1
 
-qi_data_controller.trading_day = datetime.datetime(2016, 1, 4, 0, 0, 0)
-end_time = datetime.datetime(2016, 1, 4, 8, 59, 0)
-instrument_id = "ni9999"
-bar_series = qi_data_controller.get_bar_series_by_length(EnumMarket.期货, instrument_id, 1, EnumBarType.day, 200, end_time)
-index = 1
-for bar in bar_series:
-    print("["+instrument_id+"]"+str(index)+":"+bar.to_string())
-    index += 1
+# qi_data_controller.trading_day = datetime.datetime(2016, 1, 4, 0, 0, 0)
+# end_time = datetime.datetime(2016, 1, 4, 8, 59, 0)
+# instrument_id = "ni9999"
+# bar_series = qi_data_controller.get_bar_series_by_length(EnumMarket.期货, instrument_id, 1, EnumBarType.day, 200, end_time)
+# index = 1
+# for bar in bar_series:
+#     print("["+instrument_id+"]"+str(index)+":"+bar.to_string())
+#     index += 1
 
 # length = 20
 # end_trading_date = datetime.datetime(2019, 1, 2)
@@ -126,9 +144,9 @@ for bar in bar_series:
 # print('耗时:{0}'.format(time.time()-t0))
 
 
-date_time = datetime.datetime(2019, 9, 30, 14, 0, 1)
-trading_date = YfTimeHelper.get_trading_day(date_time)
-print('{0}'.format(trading_date.strftime('%Y%m%d')))
+# date_time = datetime.datetime(2019, 9, 30, 14, 0, 1)
+# trading_date = YfTimeHelper.get_trading_day(date_time)
+# print('{0}'.format(trading_date.strftime('%Y%m%d')))
 
 # lst_a = []
 # for bar in bar_series:

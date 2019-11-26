@@ -252,6 +252,35 @@ class BaseBarHelper:
         return lst_all_date_time_slices
 
     @staticmethod
+    def create_night_am_pm_date_time_slice_by_date(instrument_manager, instrument_id, begin_date, end_date, *instrument_ids):
+        """
+        根据日期区间创建日内的日期时间片段
+        :param instrument_manager:合约管理器
+        :param instrument_id:合约编号
+        :param begin_date:开始时间
+        :param end_date:截止时间
+        :param instrument_ids:参与交易时间交集的交易品种列表
+        :return:
+        """
+        lst_all_date_time_slices = []
+        begin_trading_date = TradingDayHelper.get_first_trading_day(begin_date)
+        end_trading_day = TradingDayHelper.get_last_trading_day(end_date)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_day)
+        for trading_day in lst_trading_days:
+            lst_trading_time_slices = instrument_manager.get_trading_time(trading_day, instrument_id, *instrument_ids)
+            lst_time_slices = []
+            for i in range(len(lst_trading_time_slices)):
+                if 10 <= (lst_trading_time_slices[i].begin_time.seconds/(60*60)) <= 11:
+                    lst_time_slices[i-1].end_time = lst_trading_time_slices[i].end_time
+                else:
+                    lst_time_slices.append(lst_trading_time_slices[i])
+            lst_date_time_slices = BaseBarHelper.create_date_time_slice(trading_day, lst_time_slices)
+            for dateTimeSlice in lst_date_time_slices:
+                lst_all_date_time_slices.append(dateTimeSlice)
+
+        return lst_all_date_time_slices
+
+    @staticmethod
     def create_one_day_date_time_slice(instrument_manager, instrument_id, trading_day, interval, bar_type, *instrument_ids):
         """
         创建一天的日期时间片段
