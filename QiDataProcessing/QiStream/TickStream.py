@@ -513,7 +513,7 @@ class TickStream:
         if origin_index < len(self.__orig_tick_offset) - 1:
             next_orig_offset = self.__orig_tick_offset[origin_index + 1] - 1
 
-        blk_len = self.CPosTickLenV1 + self.__quote_count * self.CPosTickPerLevelLen - 4
+        blk_len = self.CPosTickLenV0 + self.__quote_count * self.CPosTickPerLevelLen - 4
 
         for i in range(self.__tick_count):
             hour = reader.read_byte()
@@ -537,7 +537,7 @@ class TickStream:
                     next_orig_offset = sys.maxsize
                     if origin_index < (len(self.__orig_tick_offset) - 1):
                         next_orig_offset = self.__orig_tick_offset[origin_index + 1] - 1
-                reader.read_byte(blk_len)
+                reader.read_bytes(blk_len)
                 continue
 
             tick = Tick()

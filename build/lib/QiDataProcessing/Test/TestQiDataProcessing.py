@@ -33,8 +33,8 @@ interval = 5
 bar_type = EnumBarType.day
 instrument_id_a = "IF9999"
 instrument_id_b = "rb9999"
-begin_date = datetime.datetime(2019, 11, 8, 21, 0, 0)
-end_date = datetime.datetime(2019, 11, 8, 21, 10, 0)
+begin_date = datetime.datetime(2015, 1, 6, 21, 0, 0)
+end_date = datetime.datetime(2015, 1, 6, 21, 10, 0)
 
 bar_series = qi_data_controller.load_tick_series_by_date_time(EnumMarket.期货, instrument_id_b, begin_date, end_date)
 index = 1
