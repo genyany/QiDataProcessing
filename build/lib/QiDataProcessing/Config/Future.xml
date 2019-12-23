@@ -15,6 +15,26 @@
         <VolumeMultiple>300</VolumeMultiple>
         <PriceTick>0.2</PriceTick>
       </Future>
+      <Future id="IF1911" name="沪深300股指1912">
+        <ProductID>IF</ProductID>
+        <ExchangeID>CFFEX</ExchangeID>
+        <OpenDate>2019/04/22 00:00:00</OpenDate>
+        <ExpireDate>2019/12/20 00:00:00</ExpireDate>
+        <LongMarginRatio>0.1</LongMarginRatio>
+        <ShortMarginRatio>0.1</ShortMarginRatio>
+        <VolumeMultiple>300</VolumeMultiple>
+        <PriceTick>0.2</PriceTick>
+      </Future>
+      <Future id="IF1910" name="沪深300股指1912">
+        <ProductID>IF</ProductID>
+        <ExchangeID>CFFEX</ExchangeID>
+        <OpenDate>2019/04/22 00:00:00</OpenDate>
+        <ExpireDate>2019/12/20 00:00:00</ExpireDate>
+        <LongMarginRatio>0.1</LongMarginRatio>
+        <ShortMarginRatio>0.1</ShortMarginRatio>
+        <VolumeMultiple>300</VolumeMultiple>
+        <PriceTick>0.2</PriceTick>
+      </Future>
       <Future id="IF1906" name="沪深300股指1906">
         <ProductID>IF</ProductID>
         <ExchangeID>CFFEX</ExchangeID>

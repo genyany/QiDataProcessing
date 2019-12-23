@@ -27,4 +27,4 @@ sudo pip install twine
 twine upload dist/*
 
 twine upload dist/QiDataProcessing-1.4.7.tar.gz
-pip install -U QiDataProcessing==1.4.8
+pip install -U QiDataProcessing==1.4.8 -i https://pypi.tuna.tsinghua.edu.cn/simple

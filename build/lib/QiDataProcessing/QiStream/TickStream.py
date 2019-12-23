@@ -108,10 +108,10 @@ class TickStream:
         return True
 
     def read_by_time(self, tick_series, begin_time, end_time):
-        if (begin_time == datetime.datetime) & end_time == datetime.datetime:
+        if (begin_time is None) and (end_time is None):
             return self.read_by_count(0, sys.maxsize)
 
-        if end_time == datetime.datetime:
+        if end_time is None:
             end_time = datetime.datetime.max
 
         try:
@@ -133,6 +133,8 @@ class TickStream:
                 _firstRead = False
 
             if self.__b_new_version:
+                pos = self.__tick_offset
+                stream.seek(pos, 0)
                 if self.__version == 1:
                     if self.__quote_count == 1:
                         self.read_ticks1_v1_by_time(tick_series, reader, begin_time, end_time)
@@ -145,7 +147,7 @@ class TickStream:
                         raise Exception("不支持" + str(self.__quote_count) + "档盘口")
             else:
                 pos = self.CFileHeaderLenOld
-                stream.seek(pos)
+                stream.seek(pos, 0)
                 if self.__quote_count == 1:
                     self.read_old_ticks1_by_time(tick_series, reader, begin_time, end_time)
                 else:
@@ -462,7 +464,7 @@ class TickStream:
                     next_orig_offset = sys.maxsize
                     if origin_index < (len(self.__orig_tick_offset) - 1):
                         next_orig_offset = self.__orig_tick_offset[origin_index + 1] - 1
-                reader.read_byte(blk_len)
+                reader.read_bytes(blk_len)
                 continue
 
             tick = Tick()

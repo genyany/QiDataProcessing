@@ -227,7 +227,7 @@ class QiDataController:
             end_trading_date = YfTimeHelper.get_trading_day(end_time)
             date = begin_trading_date
             while date <= end_trading_date:
-                file_path = os.path.join(path, date.strftime("%Y%m%D"))
+                file_path = os.path.join(path, date.strftime("%Y%m%d"))
                 file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
                 if instrument_id.lower() != "index":
                     instrument = self.instrument_manager[instrument_id.split('.')[0]]
@@ -265,7 +265,7 @@ class QiDataController:
                 end_trading_date = last_trading_day
             date = begin_trading_date
             while date <= end_trading_date:
-                file_path = os.path.join(path, date.strftime("%Y%m%D"))
+                file_path = os.path.join(path, date.strftime("%Y%m%d"))
                 file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
                 if instrument_id.lower() != "index":
                     instrument = self.instrument_manager[instrument_id.split('.')[0]]
