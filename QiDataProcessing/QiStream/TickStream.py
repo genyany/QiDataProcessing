@@ -600,7 +600,7 @@ class TickStream:
                 return
 
             if tick_time < begin_time:
-                reader.read_byte(blk_len)
+                reader.read_bytes(blk_len)
                 continue
 
             tick = Tick()
