@@ -42,6 +42,7 @@ QiDataProcessing/Core/TradingCalendar/2016.tc
 QiDataProcessing/Core/TradingCalendar/2017.tc
 QiDataProcessing/Core/TradingCalendar/2018.tc
 QiDataProcessing/Core/TradingCalendar/2019.tc
+QiDataProcessing/Core/TradingCalendar/2020.tc
 QiDataProcessing/Instrument/Future.py
 QiDataProcessing/Instrument/FutureManager.py
 QiDataProcessing/Instrument/Instrument.py

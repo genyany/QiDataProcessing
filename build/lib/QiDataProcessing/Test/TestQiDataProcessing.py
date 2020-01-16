@@ -28,19 +28,20 @@ qi_data_directory.future_min = min_path
 qi_data_directory.future_day = day_path
 
 qi_data_controller = QiDataController(qi_data_directory)
-
-interval = 5
-bar_type = EnumBarType.day
-instrument_id_a = "IF9999"
-instrument_id_b = "rb9999"
-begin_date = datetime.datetime(2015, 1, 6, 21, 0, 0)
-end_date = datetime.datetime(2015, 1, 6, 21, 10, 0)
-
-bar_series = qi_data_controller.load_tick_series_by_date_time(EnumMarket.期货, instrument_id_b, begin_date, end_date)
-index = 1
-for bar in bar_series:
-    print("["+instrument_id_a+"]"+str(index)+":"+bar.to_string())
-    index += 1
+instrument = qi_data_controller.instrument_manager['IF8888']
+print(instrument)
+# interval = 5
+# bar_type = EnumBarType.day
+# instrument_id_a = "IF9999"
+# instrument_id_b = "rb9999"
+# begin_date = datetime.datetime(2015, 1, 6, 21, 0, 0)
+# end_date = datetime.datetime(2015, 1, 6, 21, 10, 0)
+#
+# bar_series = qi_data_controller.load_tick_series_by_date_time(EnumMarket.期货, instrument_id_b, begin_date, end_date)
+# index = 1
+# for bar in bar_series:
+#     print("["+instrument_id_a+"]"+str(index)+":"+bar.to_string())
+#     index += 1
 
 # bar_series = qi_data_controller.load_night_am_pm_bar_series_by_length(EnumMarket.期货, instrument_id_b, 20, end_date)
 # index = 1

@@ -27,6 +27,13 @@ class InstrumentManager:
     def __getitem__(self, item):
         if item in self.__all_instruments.keys():
             return self.__all_instruments[item]
+        else:
+            instrument_id = '{0}9999'.format(self.get_product_id(item))
+            if instrument_id in self.__all_instruments.keys():
+                instrument = self.__all_instruments[instrument_id]
+                instrument.id = item
+                instrument.instrument_id = item
+                return instrument
         return None
 
     def has_instrument(self, instrument_id):
