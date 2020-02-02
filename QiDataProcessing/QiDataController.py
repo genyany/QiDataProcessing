@@ -25,7 +25,7 @@ class QiDataController:
     """
 
     def __init__(self, qi_data_directory):
-        config_dir = os.path.split(os.path.realpath(__file__))[0] + "\\Config"
+        config_dir = os.path.join(os.path.split(os.path.realpath(__file__))[0], 'Config')
         instrument_manager = InstrumentManager()
         instrument_manager.load(config_dir, EnumMarket.期货)
 

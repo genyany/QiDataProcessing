@@ -15,7 +15,7 @@ class TradingDayHelper:
     @staticmethod
     def get_all_china_trading_days():
         TradingDayHelper._days = []
-        trading_calendar_dir = os.path.split(os.path.realpath(__file__))[0] + "\\TradingCalendar\\"
+        trading_calendar_dir = os.path.join(os.path.split(os.path.realpath(__file__))[0], "TradingCalendar")
         trading_calendar_files = os.listdir(trading_calendar_dir)  # 列出文件夹下所有的目录与文件
         for i in range(0, len(trading_calendar_files)):
             trading_day_file = os.path.join(trading_calendar_dir, trading_calendar_files[i])
