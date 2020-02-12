@@ -10,7 +10,8 @@ from QiDataProcessing.TradingFrame.TradingFrameHelper import TradingFrameHelper
 
 
 class FutureManager:
-    FileName = "future.xml"
+    FileName = 'future.xml'
+    HisFileName = 'HisFutures.xml'
 
     def __init__(self):
         self.__all_exchanges = {}
@@ -38,20 +39,40 @@ class FutureManager:
 
     def load(self, config_directory):
         if not self.__is_loaded:
-            try:
-                self.__path = os.path.join(config_directory, self.FileName)
-                if os.path.exists(self.__path):
-                    pass
-                else:
-                    print("未找到配置文件:" + self.__path)
-                _root = xml.dom.minidom.parse(self.__path).documentElement
-                exchange_nodes = _root.getElementsByTagName('Exchange')
-                for exchange_node in exchange_nodes:
-                    self.__read_exchange(exchange_node)
+            self.load_future(config_directory)
+            self.load_his_future(config_directory)
 
-                self.__is_loaded = True
-            except Exception as e:
-                print(str(e))
+    def load_future(self, config_directory):
+        try:
+            self.__path = os.path.join(config_directory, self.FileName)
+            if os.path.exists(self.__path):
+                pass
+            else:
+                print("未找到配置文件:" + self.__path)
+            _root = xml.dom.minidom.parse(self.__path).documentElement
+            exchange_nodes = _root.getElementsByTagName('Exchange')
+            for exchange_node in exchange_nodes:
+                self.__read_exchange(exchange_node)
+
+            self.__is_loaded = True
+        except Exception as e:
+            print(str(e))
+
+    def load_his_future(self, config_directory):
+        try:
+            self.__path = os.path.join(config_directory, self.HisFileName)
+            if os.path.exists(self.__path):
+                pass
+            else:
+                print("未找到配置文件:" + self.__path)
+            _root = xml.dom.minidom.parse(self.__path).documentElement
+            exchange_nodes = _root.getElementsByTagName('Exchange')
+            for exchange_node in exchange_nodes:
+                self.__read_exchange(exchange_node)
+
+            self.__is_loaded = True
+        except Exception as e:
+            print(str(e))
 
     def __read_exchange(self, exchange_node):
         exchange = Exchange()
@@ -169,8 +190,9 @@ class FutureManager:
 
         # print(future.to_string())
 
-# future_manager = FutureManager()
-# config_dir = "D:\WorkSpace\CarlSnow\Python\QiDataProcessing\QiDataProcessing\Config"
-# future_manager.load(config_dir)
-# for data in future_manager.all_instruments.values():
-#     print(data.to_string())
+
+future_manager = FutureManager()
+config_dir = '../Config'
+future_manager.load(config_dir)
+for data in future_manager.all_instruments.values():
+    print(data.to_string())

@@ -12,6 +12,7 @@ QiDataProcessing.egg-info/SOURCES.txt
 QiDataProcessing.egg-info/dependency_links.txt
 QiDataProcessing.egg-info/top_level.txt
 QiDataProcessing/Config/Future.xml
+QiDataProcessing/Config/HisFutures.xml
 QiDataProcessing/Config/TradingFrame.xml
 QiDataProcessing/Core/Bar.py
 QiDataProcessing/Core/BarData.py
