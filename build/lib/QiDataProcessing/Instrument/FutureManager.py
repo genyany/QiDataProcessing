@@ -191,8 +191,8 @@ class FutureManager:
         # print(future.to_string())
 
 
-future_manager = FutureManager()
-config_dir = '../Config'
-future_manager.load(config_dir)
-for data in future_manager.all_instruments.values():
-    print(data.to_string())
+# future_manager = FutureManager()
+# config_dir = '../Config'
+# future_manager.load(config_dir)
+# for data in future_manager.all_instruments.values():
+#     print(data.to_string())
