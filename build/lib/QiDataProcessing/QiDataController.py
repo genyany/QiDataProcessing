@@ -32,6 +32,7 @@ class QiDataController:
         self.instrument_manager = instrument_manager
         self.trading_day = qi_data_directory.trading_day
 
+
         self.__future_tick_path = qi_data_directory.future_tick
         self.__future_tick_cache_path = qi_data_directory.future_tick_cache
         self.__future_min_path = qi_data_directory.future_min
@@ -979,6 +980,37 @@ class QiDataController:
                 return pre_close
         else:
             print('load_pre_close_by_tick:未取到Tick数据...,请注意.....')
+            return 0
+
+    def load_pre_settlement_price_by_tick(self, market, instrument_id, trading_date):
+        """
+        从Tick获取pre_settlement_price
+        :param market:
+        :param instrument_id:
+        :param trading_date:
+        :return:
+        """
+        path = self.__future_tick_path
+        tick_series = []
+        try:
+            file_path = os.path.join(path, trading_date.strftime('%Y%m%d'))
+            file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
+            if instrument_id.lower() != 'index':
+                instrument = self.instrument_manager[instrument_id.split('.')[0]]
+                tick_stream = TickStream(market, instrument_id, instrument.exchange_id, file_path)
+                tick_stream.read_by_count(tick_series, 0, 5)
+        except Exception as e:
+            print(str(e))
+
+        if len(tick_series) > 0:
+            pre_settlement_price = tick_series[-1].pre_settlement_price
+            if pre_settlement_price != 0:
+                return pre_settlement_price
+            else:
+                print('pre_settlement_price:{0}为0,请注意.....'.format(pre_settlement_price))
+                return pre_settlement_price
+        else:
+            print('load_pre_settlement_price_by_tick:未取到Tick数据...,请注意.....')
             return 0
 
     def on_bar(self, bar):
