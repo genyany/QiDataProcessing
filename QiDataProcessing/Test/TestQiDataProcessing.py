@@ -16,7 +16,7 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
 
 trading_day = datetime.datetime(2019, 10, 13)
-tick_path = "\\\\192.168.1.200\\MqData\\futuretick\\Future"
+tick_path = "\\\\10.100.9.200\\MqData\\futuretick\\Future"
 min_path = "\\\\192.168.1.200\\MqData\\futuremin"
 day_path = "\\\\192.168.1.200\\MqData\\futureday"
 
