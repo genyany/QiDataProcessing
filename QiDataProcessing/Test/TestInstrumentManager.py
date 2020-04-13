@@ -28,16 +28,24 @@ qi_data_directory.future_min = min_path
 qi_data_directory.future_day = day_path
 
 qi_data_controller = QiDataController(qi_data_directory)
+# 获取交易所代码
 exchange_id = qi_data_controller.instrument_manager.get_exchange_id('eg9999')
-print(exchange_id)
+# 获取期货品种列表
 lst_product_ids = qi_data_controller.instrument_manager.get_product_ids(EnumMarket.期货, exchange_id)
+# 获取期货主力合约列表
+lst_main_contract = qi_data_controller.instrument_manager.get_main_contracts(EnumMarket.期货, exchange_id)
+# 获取期货上市日期
+listing_date = qi_data_controller.instrument_manager.get_listing_date(EnumMarket.期货, 'fu9999')
+# 获取期货活跃日期
+active_date = qi_data_controller.instrument_manager.get_active_date(EnumMarket.期货, 'fu9999')
+
+print(exchange_id)
 for product_id in lst_product_ids:
     print(product_id)
-lst_main_contract = qi_data_controller.instrument_manager.get_main_contracts(EnumMarket.期货, exchange_id)
 for main_contract in lst_main_contract:
     print(main_contract)
-listing_date = qi_data_controller.instrument_manager.trading_frame_manager
-
+print(listing_date.strftime('%Y%m%d'))
+print(active_date.strftime('%Y%m%d'))
 # trading_frame_manager = qi_data_controller.instrument_manager.trading_frame_manager
 #
 # instrument_id = 'IC2001'
