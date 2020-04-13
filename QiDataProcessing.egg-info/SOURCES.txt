@@ -27,6 +27,7 @@ QiDataProcessing/Core/EnumMarket.py
 QiDataProcessing/Core/EnumRestoration.py
 QiDataProcessing/Core/Exchange.py
 QiDataProcessing/Core/FileHeader.py
+QiDataProcessing/Core/FutureExchange.py
 QiDataProcessing/Core/FutureProduct.py
 QiDataProcessing/Core/QiLogger.py
 QiDataProcessing/Core/Quote.py

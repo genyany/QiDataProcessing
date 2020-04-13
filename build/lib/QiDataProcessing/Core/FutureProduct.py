@@ -3,6 +3,7 @@ class FutureProduct:
         self._product_id = product_id
         self._product_name = product_name
         self._exchange_id = exchange_id
+        self._futures = []
         self._all_slice = []
 
     @property
@@ -28,6 +29,14 @@ class FutureProduct:
     @exchange_id.setter
     def exchange_id(self, value):
         self._exchange_id = value
+
+    @property
+    def futures(self):
+        return self._futures
+
+    @futures.setter
+    def futures(self, value):
+        self._futures = value
 
     @property
     def all_slice(self):

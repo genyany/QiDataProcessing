@@ -10,7 +10,11 @@ from QiDataProcessing.TradingFrame.TradingFrameManager import TradingFrameManage
 from QiDataProcessing.TradingFrame.YfTimeHelper import YfTimeHelper
 
 
+
 class InstrumentManager:
+    """
+    合约管理
+    """
     FuMainId = "9999"
     FuCurMonthId = "9998"
     FuNextMonthId = "9997"
@@ -36,14 +40,28 @@ class InstrumentManager:
                 return instrument
         return None
 
-    def has_instrument(self, instrument_id):
+    def contains(self, instrument_id):
+        """
+        是否包含某个合约
+        :param instrument_id:
+        :return:
+        """
         return instrument_id in self.__all_instruments.keys()
 
     @property
     def all_instruments(self):
+        """
+        所有的合约列表
+        :return:
+        """
         return self.__all_instruments
 
     def get_exchange_by_instrument_id(self, instrument_id):
+        """
+        获取交易市场
+        :param instrument_id:
+        :return:
+        """
         instrument = self.__all_instruments[instrument_id]
         if instrument is not None:
             return self.get_exchange(instrument.exchange_id)
@@ -51,6 +69,11 @@ class InstrumentManager:
         return None
 
     def get_exchange(self, exchange):
+        """
+        获取交易市场
+        :param exchange:
+        :return:
+        """
         if isinstance(exchange, str):
             if exchange in self.__all_exchanges.keys():
                 return self.__all_exchanges[exchange]
@@ -73,9 +96,16 @@ class InstrumentManager:
 
     @property
     def all_exchanges(self):
+        """
+        所有交易市场
+        :return:
+        """
         return self.__all_exchanges
 
     def clear(self):
+        """
+        清空
+        """
         self.__all_instruments.clear()
         self.__all_exchanges.clear()
 
@@ -124,6 +154,13 @@ class InstrumentManager:
                 return None
 
     def get_trading_time(self, trading_day, instrument_id, *instrument_ids):
+        """
+        获取交易时间
+        :param trading_day:
+        :param instrument_id:
+        :param instrument_ids:
+        :return:
+        """
         source = self.__get_trading_time(trading_day, instrument_id)
         if instrument_ids is None:
             return source
@@ -138,6 +175,12 @@ class InstrumentManager:
 
     @staticmethod
     def intersect(source, target):
+        """
+        交易时间求交集
+        :param source:
+        :param target:
+        :return:
+        """
         lst_time_slices = []
         lst_source = []
         lst_target = []
@@ -194,6 +237,11 @@ class InstrumentManager:
         return lst_time_slices
 
     def get_future_product(self, product_id):
+        """
+        获取期货产品
+        :param product_id:
+        :return:
+        """
         if product_id in self.__all_products.keys():
             return self.__all_products[product_id]
 
@@ -213,6 +261,12 @@ class InstrumentManager:
                 self.__all_products[product_id] = future_manager.all_products[product_id]
 
     def load(self, config_directory, market):
+        """
+        按市场加载配置
+        :param config_directory:
+        :param market:
+        :return:
+        """
         try:
             self.trading_frame_manager.load(config_directory)
 
@@ -229,6 +283,11 @@ class InstrumentManager:
 
     @staticmethod
     def get_market_by_exchange_id(exchange):
+        """
+        根据市场获取Market
+        :param exchange:
+        :return:
+        """
         if exchange == EnumExchange.大商所:
             return EnumMarket.期货
         if exchange == EnumExchange.上期所:
@@ -247,6 +306,11 @@ class InstrumentManager:
         return EnumMarket.期货
 
     def is_normal_open_close_time(self, instrument_id):
+        """
+        判断是否为
+        :param instrument_id:
+        :return:
+        """
         instrument = self[instrument_id]
         if instrument is None:
             return True
@@ -265,7 +329,13 @@ class InstrumentManager:
 
         return True
 
-    def get_living_time(self, trading_day, instrument_id):
+    def get_living_time_slice(self, trading_day, instrument_id):
+        """
+        获取实盘交易时间区间
+        :param trading_day:
+        :param instrument_id:
+        :return:
+        """
         instrument = self[instrument_id]
         if (instrument is not None) & (self.trading_frame_manager is not None):
             product_id = InstrumentManager.get_product_id(instrument_id)
@@ -323,6 +393,11 @@ class InstrumentManager:
 
     @staticmethod
     def get_product_id(instrument_id):
+        """
+        获取期货产品ID
+        :param instrument_id:
+        :return:
+        """
         return re.sub(r"\d", "", instrument_id, 0)
 
     def get_exchange_id(self, instrument_id):
@@ -339,16 +414,48 @@ class InstrumentManager:
         return None
 
     def get_living_date_time(self, trading_day, instrument_id):
-        time_slice = self.get_living_time(trading_day, instrument_id)
+        """
+        获取实盘交易时间区间
+        :param trading_day:
+        :param instrument_id:
+        :return:
+        """
+        time_slice = self.get_living_time_slice(trading_day, instrument_id)
         date_time_slice = DateTimeSlice()
         date_time_slice.begin_time = YfTimeHelper.get_date_time_by_trading_day(trading_day, time_slice.begin_time)
         date_time_slice.end_time = YfTimeHelper.get_date_time_by_trading_day(trading_day, time_slice.end_time)
         return date_time_slice
 
+    def get_product_ids(self, market, exchange_id):
+        """
+        获取产品ID
+        :param market:
+        :param exchange_id:
+        :return:
+        """
+        return self.trading_frame_manager.get_product_ids(market, exchange_id)
+
+    def get_main_contracts(self, market, exchange_id):
+        """
+        获取主力合约列表
+        :param market:
+        :param exchange_id:
+        :return:
+        """
+        lst_main_contract = []
+        lst_product_id = self.trading_frame_manager.get_product_ids(market, exchange_id)
+        for product_id in lst_product_id:
+            lst_main_contract.append('{0}9999'.format(product_id))
+        return lst_main_contract
+
+
 
 # instrument_manager = InstrumentManager()
 # config_dir = "D:\WorkSpace\GitHub\Python\Company\QiDataProcessing\QiDataProcessing\Config"
 # instrument_manager.load(config_dir, EnumMarket.期货)
+# lst_data = instrument_manager.get_main_contracts(EnumMarket.期货, 'DCE')
+# for data in lst_data:
+#     print(data)
 # print(instrument_manager.get_exchange_id('IF9999'))
 # for instrument_id in instrument_manager.all_instruments.keys():
 #     print(instrument_manager.all_instruments[instrument_id].to_string())

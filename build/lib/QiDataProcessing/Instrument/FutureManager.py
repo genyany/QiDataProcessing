@@ -1,11 +1,11 @@
 import datetime
 import os
 import xml
+
 import xml.dom.minidom
 
-from QiDataProcessing.Core.Exchange import Exchange
-from QiDataProcessing.Core.FutureProduct import FutureProduct
 from QiDataProcessing.Core.FutureExchange import FutureExchange
+from QiDataProcessing.Core.FutureProduct import FutureProduct
 from QiDataProcessing.Instrument.Future import Future
 from QiDataProcessing.TradingFrame.TradingFrameHelper import TradingFrameHelper
 
@@ -23,14 +23,26 @@ class FutureManager:
 
     @property
     def all_exchanges(self):
+        """
+        所有交易市场列表
+        :return:
+        """
         return self.__all_exchanges
 
     @property
     def all_products(self):
+        """
+        所有期货产品列表
+        :return:
+        """
         return self.__all_products
 
     @property
     def all_instruments(self):
+        """
+        所有期货合约列表
+        :return:
+        """
         return self.__all_futures
 
     def __getitem__(self, item):
@@ -39,11 +51,19 @@ class FutureManager:
         return None
 
     def load(self, config_directory):
+        """
+        加载配置文件
+        :param config_directory:
+        """
         if not self.__is_loaded:
             self.load_future(config_directory)
             self.load_his_future(config_directory)
 
     def load_future(self, config_directory):
+        """
+        加载期货Xml
+        :param config_directory:
+        """
         try:
             self.__path = os.path.join(config_directory, self.FileName)
             if os.path.exists(self.__path):
@@ -60,6 +80,10 @@ class FutureManager:
             print(str(e))
 
     def load_his_future(self, config_directory):
+        """
+        加载历史期货Xml
+        :param config_directory:
+        """
         try:
             self.__path = os.path.join(config_directory, self.HisFileName)
             if os.path.exists(self.__path):
@@ -162,6 +186,11 @@ class FutureManager:
 
     @staticmethod
     def get_node_value(node):
+        """
+        获取节点的值
+        :param node:
+        :return:
+        """
         return node.firstChild.data
 
     def __add_exchange(self, exchange):
@@ -177,6 +206,7 @@ class FutureManager:
             return
 
         self.__all_products[product.product_id] = product
+
         if product.exchange_id in self.__all_exchanges.keys():
             self.__all_exchanges[product.exchange_id].products.append(product)
 
@@ -191,11 +221,14 @@ class FutureManager:
 
         self.__all_futures[future.id] = future
 
+        if future.product_id in self.__all_products.keys():
+            self.__all_products[future.product_id].futures.append(future)
+
         # print(future.to_string())
 
 
 # future_manager = FutureManager()
-# config_dir = '../Config'
+# config_dir = '../Profiles'
 # future_manager.load(config_dir)
 # for data in future_manager.all_instruments.values():
 #     print(data.to_string())
