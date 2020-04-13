@@ -331,12 +331,12 @@ class InstrumentManager:
         :param instrument_id:
         :return:
         """
-        product = self.get_future_product(self.get_product_id(instrument_id))
-        if product is not None:
-            return product.exchange_id
-        else:
-            print('未找到{0}对应的期货产品'.format(instrument_id))
-            return None
+        instrument = self.__all_instruments[instrument_id]
+        if instrument is not None:
+            return instrument.exchange_id
+
+        print('未找到{0}对应的合约'.format(instrument_id))
+        return None
 
     def get_living_date_time(self, trading_day, instrument_id):
         time_slice = self.get_living_time(trading_day, instrument_id)

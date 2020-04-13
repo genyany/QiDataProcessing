@@ -5,6 +5,7 @@ import xml.dom.minidom
 
 from QiDataProcessing.Core.Exchange import Exchange
 from QiDataProcessing.Core.FutureProduct import FutureProduct
+from QiDataProcessing.Core.FutureExchange import FutureExchange
 from QiDataProcessing.Instrument.Future import Future
 from QiDataProcessing.TradingFrame.TradingFrameHelper import TradingFrameHelper
 
@@ -75,7 +76,7 @@ class FutureManager:
             print(str(e))
 
     def __read_exchange(self, exchange_node):
-        exchange = Exchange()
+        exchange = FutureExchange()
         exchange.exchange_id = exchange_node.getAttribute('id')
         exchange.exchange_name = exchange_node.getAttribute('name')
 
@@ -176,6 +177,8 @@ class FutureManager:
             return
 
         self.__all_products[product.product_id] = product
+        if product.exchange_id in self.__all_exchanges.keys():
+            self.__all_exchanges[product.exchange_id].products.append(product)
 
         # print(product.to_string())
 
