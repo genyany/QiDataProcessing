@@ -53,6 +53,7 @@ QiDataProcessing/QiStream/DayBarStream.py
 QiDataProcessing/QiStream/MinBarStream.py
 QiDataProcessing/QiStream/TickStream.py
 QiDataProcessing/QiStream/__init__.py
+QiDataProcessing/Test/TestInstrumentManager.py
 QiDataProcessing/Test/TestQiDataProcessing.py
 QiDataProcessing/Test/TestTime.py
 QiDataProcessing/Test/TestTradingDayHelper.py

@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import xml
 import xml.dom.minidom
 
@@ -133,6 +134,37 @@ class TradingFrameManager:
 
         return None
 
+    def get_listing_date(self, market, exchange_id, instrument_id):
+        """
+        获取上市日期
+        """
+        product_id = re.sub(r"\d", "", instrument_id, 0)
+        lst_data = self.get_trading_time_frames(market, exchange_id, product_id)
+        if lst_data is None:
+            return None
+        lst_data.sort(key=lambda x: x.begin_day)
+        if len(lst_data) >= 1:
+            return lst_data[1].begin_day
+        else:
+            return None
+
+    def get_active_date(self, market, exchange_id, instrument_id):
+        """
+        获取活跃日期
+        """
+        product_id = re.sub(r"\d", "", instrument_id, 0)
+        lst_data = self.get_trading_time_frames(market, exchange_id, product_id)
+        if lst_data is None:
+            return None
+        lst_data.sort(key=lambda x: x.begin_day)
+        if product_id == 'fu':
+            return datetime.datetime(2018, 7, 17)
+        else:
+            if len(lst_data) >= 1:
+                return lst_data[1].begin_day
+            else:
+                return None
+
     @staticmethod
     def __read_future_trading_frame(node):
         future_trading_frame = FutureTradingFrame()
@@ -178,11 +210,15 @@ class TradingFrameManager:
             product_trading_frame.limit_value.low_limit = float(limit_value_node.getAttribute('LowLimit'))
 
         return product_trading_frame
-#
-#
+
+
 # trading_frame_manager = TradingFrameManager()
-# config_dir = "D:\WorkSpace\CarlSnow\Python\QiDataProcessing\QiDataProcessing\Config"
+# config_dir = "D:\WorkSpace\GitHub\Python\Company\QiDataProcessing\QiDataProcessing\Config"
 # trading_frame_manager.load(config_dir)
+# date = trading_frame_manager.get_listing_date(EnumMarket.期货, 'CFFEX', 'fu')
+# print(date.strftime('%Y%m%d'))
+# date = trading_frame_manager.get_active_date(EnumMarket.期货, 'CFFEX', 'fu')
+# print(date.strftime('%Y%m%d'))
 # index = 0
 # exchange_index_map = {}
 # exchange_product_id_map = {}

@@ -16,9 +16,9 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
 
 trading_day = datetime.datetime(2019, 10, 13)
-tick_path = "\\\\192.168.1.200\\MqData\\futuretick\\Future"
-min_path = "\\\\192.168.1.200\\MqData\\futuremin"
-day_path = "\\\\192.168.1.200\\MqData\\futureday"
+tick_path = "\\\\10.100.9.200\\MqData\\futuretick\\Future"
+min_path = "\\\\10.100.9.200\\MqData\\futuremin"
+day_path = "\\\\10.100.9.200\\MqData\\futureday"
 
 qi_data_directory = QiDataDirectory()
 qi_data_directory.trading_day = trading_day
@@ -28,10 +28,10 @@ qi_data_directory.future_min = min_path
 qi_data_directory.future_day = day_path
 
 qi_data_controller = QiDataController(qi_data_directory)
-instrument = qi_data_controller.instrument_manager['IF8888']
-print(instrument)
-# interval = 5
-# bar_type = EnumBarType.day
+# instrument = qi_data_controller.instrument_manager['IC9999']
+# print(instrument)
+# interval = 3
+# bar_type = EnumBarType.minute
 # instrument_id_a = "IF9999"
 # instrument_id_b = "rb9999"
 # begin_date = datetime.datetime(2015, 1, 6, 21, 0, 0)
@@ -84,16 +84,16 @@ print(instrument)
 #     print("["+instrument_id+"]"+str(index)+":"+bar.to_string()+','+str(bar.pre_close))
 #     index += 1
 
-# begin_trading_date = datetime.datetime(2018, 12, 28, 21, 1, 0)
-# end_trading_date = datetime.datetime(2019, 1, 2, 21, 1, 0)
-# instrument_id = "rb9999"
-# interval = 1
-# bar_type = EnumBarType.minute
-# bar_series = qi_data_controller.load_bar_series_by_date_time(EnumMarket.期货, instrument_id, interval, bar_type, begin_trading_date, end_trading_date)
-# index = 1
-# for bar in bar_series:
-#     print("["+instrument_id+"]"+str(index)+":"+bar.to_string()+','+str(bar.pre_close))
-#     index += 1
+begin_trading_date = datetime.datetime(2015, 4, 8, 9, 0, 0)
+end_trading_date = datetime.datetime(2015, 4, 8, 21, 1, 0)
+instrument_id = "IC9999"
+interval = 3
+bar_type = EnumBarType.minute
+bar_series = qi_data_controller.load_bar_series_by_date_time(EnumMarket.期货, instrument_id, interval, bar_type, begin_trading_date, end_trading_date)
+index = 1
+for bar in bar_series:
+    print("["+instrument_id+"]"+str(index)+":"+bar.to_string()+','+str(bar.pre_close))
+    index += 1
 
 
 # end_trading_date = datetime.datetime(2019, 10, 9)
