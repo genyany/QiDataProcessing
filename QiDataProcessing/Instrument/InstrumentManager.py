@@ -325,6 +325,19 @@ class InstrumentManager:
     def get_product_id(instrument_id):
         return re.sub(r"\d", "", instrument_id, 0)
 
+    def get_exchange_id(self, instrument_id):
+        """
+        获取ExchangeId
+        :param instrument_id:
+        :return:
+        """
+        product = self.get_future_product(self.get_product_id(instrument_id))
+        if product is not None:
+            return product.exchange_id
+        else:
+            print('未找到{0}对应的期货产品'.format(instrument_id))
+            return None
+
     def get_living_date_time(self, trading_day, instrument_id):
         time_slice = self.get_living_time(trading_day, instrument_id)
         date_time_slice = DateTimeSlice()
@@ -332,11 +345,11 @@ class InstrumentManager:
         date_time_slice.end_time = YfTimeHelper.get_date_time_by_trading_day(trading_day, time_slice.end_time)
         return date_time_slice
 
-#
+
 # instrument_manager = InstrumentManager()
-#
-# config_dir = "D:\WorkSpace\CarlSnow\Python\QiDataProcessing\QiDataProcessing\Config"
+# config_dir = "D:\WorkSpace\GitHub\Python\Company\QiDataProcessing\QiDataProcessing\Config"
 # instrument_manager.load(config_dir, EnumMarket.期货)
+# print(instrument_manager.get_exchange_id('IF9999'))
 # for instrument_id in instrument_manager.all_instruments.keys():
 #     print(instrument_manager.all_instruments[instrument_id].to_string())
 #
