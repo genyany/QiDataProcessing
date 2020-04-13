@@ -448,6 +448,25 @@ class InstrumentManager:
             lst_main_contract.append('{0}9999'.format(product_id))
         return lst_main_contract
 
+    def get_listing_date(self, market, instrument_id):
+        """
+        获取上市日期
+        :param market:
+        :param instrument_id:
+        :return:
+        """
+        exchange_id = self.get_exchange_id(instrument_id)
+        return self.trading_frame_manager.get_listing_date(market, exchange_id, instrument_id)
+
+    def get_active_date(self, market, instrument_id):
+        """
+        获取活跃日期
+        :param market:
+        :param instrument_id:
+        :return:
+        """
+        exchange_id = self.get_exchange_id(instrument_id)
+        return self.trading_frame_manager.get_active_date(market, exchange_id, instrument_id)
 
 
 # instrument_manager = InstrumentManager()

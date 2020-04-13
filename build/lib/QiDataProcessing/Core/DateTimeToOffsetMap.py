@@ -26,7 +26,7 @@ class DateTimeToOffsetMap:
         self._bucketSize = 32
         self._mask = self._bucketSize - 1
         self._fileHeader = None
-        self._defaultKey = datetime.date
+        self._defaultKey = datetime.datetime(1970, 1, 1, 8, 0, 0)
         self._keys = []
         self._values = []
         self._fileHeader = file_header
@@ -168,9 +168,11 @@ class DateTimeToOffsetMap:
             writer.write(value.count)
 
     def read(self, reader):
+        self._keys = []
         for i in range(0, self._bucketSize):
             self._keys.append(QiCore.convert_c_sharp_ticks_to_py_date_time(reader.read_int64()))
 
+        self._values = []
         for i in range(0, self._bucketSize):
             self._values.append(OffsetCount(reader.read_int64(), reader.read_int32()))
 

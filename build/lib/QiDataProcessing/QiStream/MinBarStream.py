@@ -9,6 +9,9 @@ import os.path
 
 
 class MinBarStream(object):
+    """
+    分钟读写流
+    """
     BarLength = 88
     SimpleDayBarCountThreshold = 18
 
@@ -136,8 +139,12 @@ class MinBarStream(object):
 
         return read_count > 0
 
-    @staticmethod
-    def read_bar(reader):
+    def read_bar(self, reader):
+        """
+        读取Bar
+        :param reader:
+        :return:
+        """
         bar = Bar()
         bar.begin_time = QiCore.convert_c_sharp_ticks_to_py_date_time(reader.read_int64())
         bar.end_time = QiCore.convert_c_sharp_ticks_to_py_date_time(reader.read_int64())
@@ -153,3 +160,4 @@ class MinBarStream(object):
         # bar.IsCompleted = True
 
         return bar
+
