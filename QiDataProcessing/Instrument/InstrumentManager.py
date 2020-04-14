@@ -406,12 +406,13 @@ class InstrumentManager:
         :param instrument_id:
         :return:
         """
-        instrument = self.__all_instruments[instrument_id]
-        if instrument is not None:
-            return instrument.exchange_id
-
-        print('未找到{0}对应的合约'.format(instrument_id))
-        return None
+        # instrument = self.__all_instruments[instrument_id]
+        # if instrument is not None:
+        #     return instrument.exchange_id
+        #
+        # print('未找到{0}对应的合约'.format(instrument_id))
+        # return None
+        return self.trading_frame_manager.get_exchange_id(EnumMarket.期货, self.get_product_id(instrument_id))
 
     def get_living_date_time(self, trading_day, instrument_id):
         """
@@ -472,6 +473,7 @@ class InstrumentManager:
 # instrument_manager = InstrumentManager()
 # config_dir = "D:\WorkSpace\GitHub\Python\Company\QiDataProcessing\QiDataProcessing\Config"
 # instrument_manager.load(config_dir, EnumMarket.期货)
+# print(instrument_manager.get_exchange_id('sc9999'))
 # lst_data = instrument_manager.get_main_contracts(EnumMarket.期货, 'DCE')
 # for data in lst_data:
 #     print(data)

@@ -243,6 +243,21 @@ class TradingFrameManager:
 
         return lst_product_id
 
+    def get_exchange_id(self, market, product_id):
+        """
+        获取产品ID
+        :param market:
+        :param product_id:
+        :return:
+        """
+        if market == EnumMarket.期货:
+            for exchange in self.__future.exchanges:
+                for product in exchange.products:
+                    if product.id == product_id:
+                        return exchange.id
+
+        return None
+
     @staticmethod
     def __read_future_trading_frame(node):
         future_trading_frame = FutureTradingFrame()

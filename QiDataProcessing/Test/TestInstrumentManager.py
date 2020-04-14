@@ -29,7 +29,7 @@ qi_data_directory.future_day = day_path
 
 qi_data_controller = QiDataController(qi_data_directory)
 # 获取交易所代码
-exchange_id = qi_data_controller.instrument_manager.get_exchange_id('eg9999')
+exchange_id = qi_data_controller.instrument_manager.get_exchange_id('sc9999')
 # 获取期货品种列表
 lst_product_ids = qi_data_controller.instrument_manager.get_product_ids(EnumMarket.期货, exchange_id)
 # 获取期货主力合约列表
