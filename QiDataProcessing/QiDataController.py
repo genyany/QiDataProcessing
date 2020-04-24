@@ -951,6 +951,28 @@ class QiDataController:
                     bar_provider.bar_series[-1].close = last_tick.last_price
                     bar_provider.bar_series[-1].trading_date = last_tick.trading_day
 
+    def load_last_tick(self, market, instrument_id, trading_date):
+        """
+        获取交易日最后一个Tick
+        :param market:
+        :param instrument_id:
+        :param trading_date:
+        :return:
+        """
+        path = self.__future_tick_path
+        try:
+            file_path = os.path.join(path, trading_date.strftime('%Y%m%d'))
+            file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
+            if instrument_id.lower() != 'index':
+                instrument = self.instrument_manager[instrument_id.split('.')[0]]
+                tick_stream = TickStream(market, instrument_id, instrument.exchange_id, file_path)
+                tick = tick_stream.read_last_tick()
+                return tick
+        except Exception as e:
+            print(str(e))
+            print('load_last_tick:未取到Tick数据...,请注意.....')
+            return None
+
     def load_pre_close_by_tick(self, market, instrument_id, trading_date):
         """
         从Tick获取pre_close
@@ -980,6 +1002,28 @@ class QiDataController:
                 return pre_close
         else:
             print('load_pre_close_by_tick:未取到Tick数据...,请注意.....')
+            return 0
+
+    def load_close_price_by_tick(self, market, instrument_id, trading_date):
+        """
+        从Tick获取close
+        :param market:
+        :param instrument_id:
+        :param trading_date:
+        :return:
+        """
+        path = self.__future_tick_path
+        try:
+            file_path = os.path.join(path, trading_date.strftime('%Y%m%d'))
+            file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".tk")
+            if instrument_id.lower() != 'index':
+                instrument = self.instrument_manager[instrument_id.split('.')[0]]
+                tick_stream = TickStream(market, instrument_id, instrument.exchange_id, file_path)
+                tick = tick_stream.read_last_tick()
+                return tick.last_price
+        except Exception as e:
+            print(str(e))
+            print('load_close_price_by_tick:未取到Tick数据...,请注意.....')
             return 0
 
     def load_pre_settlement_price_by_tick(self, market, instrument_id, trading_date):

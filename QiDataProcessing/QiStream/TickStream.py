@@ -84,14 +84,14 @@ class TickStream:
 
         if self.__b_new_version:
             if self.__version == 1:
-                pos = self.__tick_offset + offset * (self.CPosTickLenV0 + self.__quote_count * self.CPosTickPerLevelLen)
+                pos = self.__tick_offset + offset * (self.CPosTickLenV1 + self.__quote_count * self.CPosTickPerLevelLen)
                 stream.seek(pos)
                 if self.__quote_count == 1:
                     self.read_ticks1_v1_by_count(tick_series, reader, offset, count)
                 else:
                     raise Exception("不支持" + str(self.__quote_count) + "档盘口")
             else:
-                pos = self.__tick_offset + offset * (self.CPosTickLenV1 + self.__quote_count * self.CPosTickPerLevelLen)
+                pos = self.__tick_offset + offset * (self.CPosTickLenV0 + self.__quote_count * self.CPosTickPerLevelLen)
                 stream.seek(pos)
                 if self.__quote_count == 1:
                     self.read_ticks1_v0_by_count(tick_series, reader, offset, count)
@@ -106,6 +106,58 @@ class TickStream:
                 raise Exception("不支持" + str(self.__quote_count) + "档盘口")
         stream.close()
         return True
+
+    def read_last_tick(self):
+        """
+        根据个数读取
+        :return:
+        """
+        if not os.path.exists(self.__file_path):
+            _firstRead = True
+            print("读取期货tick数据失败(" + self.__file_path + "),文件不存在")
+            return False
+
+        stream = open(self.__file_path, 'rb')
+        reader = BinaryReader(stream)
+
+        if self.__first_read:
+            if self.read_header(reader):
+                stream.seek(self.__orig_day_offset, 0)
+                self.read_orig_days(reader)
+            else:
+                stream.seek(0, 0)
+                self.read_old_header(reader)
+            _firstRead = False
+
+        tick_series = []
+        offset = self.__tick_count - 1
+        count = 1
+        if self.__b_new_version:
+            if self.__version == 1:
+                pos = self.__tick_offset + offset * (self.CPosTickLenV1 + self.__quote_count * self.CPosTickPerLevelLen)
+                stream.seek(pos)
+                if self.__quote_count == 1:
+                    self.read_ticks1_v1_by_count(tick_series, reader, offset, count)
+                else:
+                    raise Exception("不支持" + str(self.__quote_count) + "档盘口")
+            else:
+                pos = self.__tick_offset + offset * (self.CPosTickLenV0 + self.__quote_count * self.CPosTickPerLevelLen)
+                stream.seek(pos)
+                if self.__quote_count == 1:
+                    self.read_ticks1_v0_by_count(tick_series, reader, offset, count)
+                else:
+                    raise Exception("不支持" + str(self.__quote_count) + "档盘口")
+        else:
+            pos = self.CFileHeaderLenOld + offset * (self.CTickHeaderLenOld + self.__quote_count * 2 * 8)
+            stream.seek(pos)
+            if self.__quote_count == 1:
+                self.read_old_ticks1_by_count(tick_series, reader, offset, count)
+            else:
+                raise Exception("不支持" + str(self.__quote_count) + "档盘口")
+        stream.close()
+        if len(tick_series) > 0:
+            return tick_series[0]
+        return None
 
     def read_by_time(self, tick_series, begin_time, end_time):
         if (begin_time is None) and (end_time is None):
