@@ -115,7 +115,7 @@ class TickStream:
         if not os.path.exists(self.__file_path):
             _firstRead = True
             print("读取期货tick数据失败(" + self.__file_path + "),文件不存在")
-            return False
+            return None
 
         stream = open(self.__file_path, 'rb')
         reader = BinaryReader(stream)
