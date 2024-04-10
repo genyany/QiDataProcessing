@@ -84,6 +84,8 @@ class InstrumentManager:
                 return self.get_exchange("DCE")
             elif exchange == EnumExchange.上期所:
                 return self.get_exchange("SHFE")
+            elif exchange == EnumExchange.能源所:
+                return self.get_exchange("INE")
             elif exchange == EnumExchange.郑商所:
                 return self.get_exchange("CZCE")
             elif exchange == EnumExchange.上证所:
@@ -295,6 +297,8 @@ class InstrumentManager:
         if exchange == EnumExchange.郑商所:
             return EnumMarket.期货
         if exchange == EnumExchange.中金所:
+            return EnumMarket.期货
+        if exchange == EnumExchange.能源所:
             return EnumMarket.期货
         if exchange == EnumExchange.上证所:
             return EnumMarket.股票

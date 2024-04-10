@@ -1,7 +1,10 @@
 import datetime
+import pandas as pd
+from QiDataProcessing.Core.EnumMarket import EnumMarket
 
 from QiDataProcessing.BarProviderInfo import BarProviderInfo
 from QiDataProcessing.Core.EnumBarType import EnumBarType
+from QiDataProcessing.Core.HolidayHelper import HolidayHelper
 from QiDataProcessing.Core.TradingDayHelper import TradingDayHelper
 from QiDataProcessing.TradingFrame.DateTimeSlice import DateTimeSlice
 from QiDataProcessing.TradingFrame.TimeSlice import TimeSlice
@@ -224,6 +227,69 @@ class BaseBarHelper:
                     lst_all_date_time_slices.append(dateTimeSlice)
 
         return lst_all_date_time_slices
+
+    @staticmethod
+    def create_in_day_date_time_slice_by_date_consider_holiday(instrument_manager, instrument_id, begin_date, end_date, interval, bar_type, *instrument_ids):
+        """
+        根据日期区间创建日内的日期时间片段
+        :param instrument_manager:合约管理器
+        :param instrument_id:合约编号
+        :param begin_date:开始时间
+        :param end_date:截止时间
+        :param interval:间隔
+        :param bar_type:K线类型
+        :param instrument_ids:参与交易时间交集的交易品种列表
+        :return:
+        """
+        lst_all_date_time_slices = []
+        begin_trading_date = TradingDayHelper.get_first_trading_day(begin_date)
+        end_trading_day = TradingDayHelper.get_last_trading_day(end_date)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_day)
+        listing_date = instrument_manager.get_listing_date(EnumMarket.期货, instrument_id)
+        for trading_day in lst_trading_days:
+            lst_trading_time_slices = instrument_manager.get_trading_time(trading_day, instrument_id, *instrument_ids)
+            lst_time_slices = BaseBarHelper.create_time_slice(lst_trading_time_slices, 0, interval, bar_type)
+            lst_date_time_slices = BaseBarHelper.create_date_time_slice(trading_day, lst_time_slices)
+            for dateTimeSlice in lst_date_time_slices:
+                if trading_day == listing_date or HolidayHelper.is_post_holiday_trading_date(trading_day):
+                    if dateTimeSlice.begin_time.hour > 6 and (dateTimeSlice.begin_time.hour < 18):  # 只有日盘
+                        lst_all_date_time_slices.append(dateTimeSlice)
+                else:
+                    lst_all_date_time_slices.append(dateTimeSlice)
+
+        return lst_all_date_time_slices
+
+    @staticmethod
+    def create_data_frame_in_day_date_time_slice_by_date_consider_holiday(instrument_manager, instrument_id, begin_date, end_date, interval, bar_type, *instrument_ids):
+        """
+        根据日期区间创建日内的日期时间片段的DataFrame
+        :param instrument_manager:合约管理器
+        :param instrument_id:合约编号
+        :param begin_date:开始时间
+        :param end_date:截止时间
+        :param interval:间隔
+        :param bar_type:K线类型
+        :param instrument_ids:参与交易时间交集的交易品种列表
+        :return:
+        """
+        lst_all_date_time_slices = []
+        begin_trading_date = TradingDayHelper.get_first_trading_day(begin_date)
+        end_trading_day = TradingDayHelper.get_last_trading_day(end_date)
+        lst_trading_days = TradingDayHelper.get_trading_days(begin_trading_date, end_trading_day)
+        listing_date = instrument_manager.get_listing_date(EnumMarket.期货, instrument_id)
+        for trading_day in lst_trading_days:
+            lst_trading_time_slices = instrument_manager.get_trading_time(trading_day, instrument_id, *instrument_ids)
+            lst_time_slices = BaseBarHelper.create_time_slice(lst_trading_time_slices, 0, interval, bar_type)
+            lst_date_time_slices = BaseBarHelper.create_date_time_slice(trading_day, lst_time_slices)
+            for dateTimeSlice in lst_date_time_slices:
+                if trading_day == listing_date or HolidayHelper.is_post_holiday_trading_date(trading_day):
+                    if dateTimeSlice.begin_time.hour > 6 and (dateTimeSlice.begin_time.hour < 18):  # 只有日盘
+                        lst_all_date_time_slices.append([dateTimeSlice.begin_time, dateTimeSlice.end_time])
+                else:
+                    lst_all_date_time_slices.append([dateTimeSlice.begin_time, dateTimeSlice.end_time])
+
+        df_all_date_time_slices = pd.DataFrame(lst_all_date_time_slices, columns=['begin_time', 'end_time'])
+        return df_all_date_time_slices
 
     @staticmethod
     def create_in_day_date_time_slice_by_date(instrument_manager, instrument_id, begin_date, end_date, interval, bar_type, *instrument_ids):

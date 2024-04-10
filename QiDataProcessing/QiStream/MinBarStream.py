@@ -120,6 +120,9 @@ class MinBarStream(object):
         if end_trading_day > self._fileHeader.end_trading_day:
             end_trading_day = self._fileHeader.end_trading_day
 
+        if end_trading_day < begin_trading_day:
+            return False
+
         start_offset = -1
         end_offset = -1
         start_count = 0
@@ -158,12 +161,28 @@ class MinBarStream(object):
         bar.turnover = reader.read_double()
         bar.open_interest = reader.read_double()
         bar.IsCompleted = True
+        bar_time_delta = datetime.timedelta(hours=bar.end_time.hour, minutes=bar.end_time.minute, seconds=bar.end_time.second, microseconds=bar.end_time.microsecond)
+
         standard_time_delta = datetime.timedelta(hours=15, minutes=0, seconds=0)
         begin_time_delta = datetime.timedelta(hours=14, minutes=59, seconds=1)
-        end_time_delta = datetime.timedelta(hours=15, minutes=30, seconds=0)
-        bar_time_delta = datetime.timedelta(hours=bar.end_time.hour, minutes=bar.end_time.minute, seconds=bar.end_time.second, microseconds=bar.end_time.microsecond)
+        end_time_delta = datetime.timedelta(hours=15, minutes=0, seconds=59)
+        if begin_time_delta < bar_time_delta < end_time_delta and bar_time_delta != standard_time_delta:
+            bar.end_time = datetime.datetime(bar.end_time.year, bar.end_time.month, bar.end_time.day) + standard_time_delta
+
+        standard_time_delta = datetime.timedelta(hours=15, minutes=15, seconds=0)
+        begin_time_delta = datetime.timedelta(hours=15, minutes=14, seconds=1)
+        end_time_delta = datetime.timedelta(hours=15, minutes=15, seconds=59)
+        if begin_time_delta < bar_time_delta < end_time_delta and bar_time_delta != standard_time_delta:
+            bar.end_time = datetime.datetime(bar.end_time.year, bar.end_time.month, bar.end_time.day) + standard_time_delta
+
+        standard_time_delta = datetime.timedelta(hours=15, minutes=30, seconds=0)
+        begin_time_delta = datetime.timedelta(hours=15, minutes=29, seconds=1)
+        end_time_delta = datetime.timedelta(hours=15, minutes=30, seconds=59)
         if begin_time_delta < bar_time_delta < end_time_delta and bar_time_delta != standard_time_delta:
             bar.end_time = datetime.datetime(bar.end_time.year, bar.end_time.month, bar.end_time.day) + standard_time_delta
 
         return bar
+
+    def close(self):
+        self._fileStream.close()
 

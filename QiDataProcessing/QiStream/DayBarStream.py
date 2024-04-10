@@ -54,6 +54,7 @@ class DayBarStream(object):
             reader.stream.seek(pos, 1)
             self.read_bars(reader, bar_series, begin_date, end_date)
             self._bValid = True
+            stream.close()
             return True
         except Exception as e:
             self._firstRead = True

@@ -345,6 +345,19 @@
           <TradingFrame BeginDay="20200506" TradingTime="21:00,23:00,09:00,10:15,10:30,11:30,13:30,15:00" />
           <LimitValue UpLimit="0.04" LowLimit="0.04" />
         </Product>
+	  	<Product id="pg" name="液化石油气" >
+          <TradingFrame BeginDay="19900101" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20200327" TradingTime="09:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+		  <TradingFrame BeginDay="20200328" TradingTime="21:00:00,23:00:00,09:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+          <TradingFrame BeginDay="20200203" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20200506" TradingTime="21:00,23:00,09:00,10:15,10:30,11:30,13:30,15:00" />
+		  <LimitValue UpLimit="0.04" LowLimit="0.04" />
+		</Product>
+		<Product id="lh" name="生猪" >
+          <TradingFrame BeginDay="19900101" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20210108" TradingTime="09:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+		  <LimitValue UpLimit="0.04" LowLimit="0.04" />
+		</Product>
       </Products>
     </Exchange>
     <Exchange id="CZCE" name="郑州商品交易所" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00">
@@ -484,6 +497,27 @@
           <TradingFrame BeginDay="20121228" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
           <LimitValue UpLimit="0.04" LowLimit="0.04" />
         </Product>
+		<Product id="PF" name="短纤" >
+          <TradingFrame BeginDay="19900101" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20201012" TradingTime="09:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+		  <TradingFrame BeginDay="20201013" TradingTime="21:00:00,23:00:00,09:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+          <TradingFrame BeginDay="20200203" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20200506" TradingTime="21:00,23:00,09:00,10:15,10:30,11:30,13:30,15:00" />
+		  <LimitValue UpLimit="0.05" LowLimit="0.05" />
+		</Product>
+		<Product id="PK" name="花生" >
+          <TradingFrame BeginDay="19900101" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20210201" TradingTime="09:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+		  <LimitValue UpLimit="0.05" LowLimit="0.05" />
+		</Product>
+        <Product id="SA" name="纯碱" >
+          <TradingFrame BeginDay="19900101" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20191206" TradingTime="09:00,10:15,10:30,11:30,13:30,15:00"  />
+		  <TradingFrame BeginDay="20191207" TradingTime="21:00,23:00,09:00,10:15,10:30,11:30,13:30,15:00"  />
+          <TradingFrame BeginDay="20200203" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20200506" TradingTime="21:00,23:00,09:00,10:15,10:30,11:30,13:30,15:00" />
+		  <LimitValue UpLimit="0.05" LowLimit="0.05" />
+		</Product>
       </Products>
     </Exchange>
     <Exchange id="INE" name="能源所" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00">
@@ -496,11 +530,25 @@
           <TradingFrame BeginDay="20200506" TradingTime="21:00,02:30,09:00,10:15,10:30,11:30,13:30,15:00" />
           <LimitValue UpLimit="0.05" LowLimit="0.05" />
         </Product>
+        <Product id="lu" name="低硫燃料油">
+          <TradingFrame BeginDay="19900101" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20200622" TradingTime="9:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+		  <TradingFrame BeginDay="20200623" TradingTime="21:00:00,23:00:00,9:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+          <TradingFrame BeginDay="20200203" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20200506" TradingTime="21:00,23:00,09:00,10:15,10:30,11:30,13:30,15:00" />
+		  <LimitValue UpLimit="0.05" LowLimit="0.05" />
+        </Product>
         <Product id="nr" name="20号胶">
           <TradingFrame BeginDay="19900101" TradingTime="21:00,23:30,09:00,10:15,10:30,11:30,13:30,15:00" />
           <TradingFrame BeginDay="20190812" TradingTime="21:00,23:30,09:00,10:15,10:30,11:30,13:30,15:00" />
           <TradingFrame BeginDay="20200203" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
           <TradingFrame BeginDay="20200506" TradingTime="21:00,23:30,09:00,10:15,10:30,11:30,13:30,15:00" />
+          <LimitValue UpLimit="0.05" LowLimit="0.05" />
+        </Product>
+        <Product id="bc" name="国际铜">
+          <TradingFrame BeginDay="19900101" TradingTime="9:00,10:15,10:30,11:30,13:30,15:00" />
+          <TradingFrame BeginDay="20201119" TradingTime="09:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
+          <TradingFrame BeginDay="20201120" TradingTime="21:00:00,01:00:00,09:00:00,10:15:00,10:30:00,11:30:00,13:30:00,15:00:00"  />
           <LimitValue UpLimit="0.05" LowLimit="0.05" />
         </Product>
       </Products>

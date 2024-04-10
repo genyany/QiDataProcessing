@@ -30,3 +30,9 @@ twine upload dist/QiDataProcessing-1.5.3.tar.gz
 twine upload dist/QiDataProcessing-1.5.5.tar.gz
 pip install -U QiDataProcessing==1.4.8 -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install -U QiDataProcessing==1.6.5 -i https://pypi.python.org/simple
+twine upload -u maxtricsinvestment -p pypi-AgEIcHlwaS5vcmcCJGUwM2E1Zjc1LTRhNTgtNGQyMC1iOTIyLTIyOGQ3NGUzNTZlNwACGFsxLFsicWlkYXRhcHJvY2Vzc2luZyJdXQACLFsyLFsiY2Y0ZTI0MmMtYTVjNi00MzI1LTk0ZmItYmQyZjVkNjU5NTZlIl1dAAAGIImuOr-i9ccHlbuSfyNVpfxxgiEX6knZrrXwbpLSwn6S  dist/QiDataProcessing-2.0.1.tar.gz
+twine upload dist/QiDataProcessing-2.0.5.tar.gz
+
+twine upload -u __token__ -p pypi-AgEIcHlwaS5vcmcCJGUwM2E1Zjc1LTRhNTgtNGQyMC1iOTIyLTIyOGQ3NGUzNTZlNwACGFsxLFsicWlkYXRhcHJvY2Vzc2luZyJdXQACLFsyLFsiY2Y0ZTI0MmMtYTVjNi00MzI1LTk0ZmItYmQyZjVkNjU5NTZlIl1dAAAGIImuOr-i9ccHlbuSfyNVpfxxgiEX6knZrrXwbpLSwn6S  dist/QiDataProcessing-2.0.11.tar.gz
+twine upload dist/QiDataProcessing-2.0.5.tar.gz
+pi

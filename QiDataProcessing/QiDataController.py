@@ -97,9 +97,13 @@ class QiDataController:
 
                 file_path = os.path.join(path, trading_date.strftime('%Y%m'))
                 file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".min")
+                if not os.path.exists(file_path):
+                    print('No such file:' + file_path)
+                    return
                 if instrument_id.lower() != 'index':
                     min_bar_steam = MinBarStream(market, instrument_id, file_path)
                     min_bar_steam.read_trading_day(bar_series, trading_date)
+                    min_bar_steam.close()
 
             if len(trading_dates) == 2:
                 begin_date = trading_dates[0]
@@ -113,8 +117,13 @@ class QiDataController:
                 while date <= end_month:
                     file_path = os.path.join(path, date.strftime('%Y%m'))
                     file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".min")
+                    if not os.path.exists(file_path):
+                        print('No such file:' + file_path)
+                        date = date + relativedelta(months=+1)
+                        continue
                     min_bar_steam = MinBarStream(market, instrument_id, file_path)
                     min_bar_steam.read_trading_days(bar_series, begin_date, end_date)
+                    min_bar_steam.close()
                     date = date + relativedelta(months=+1)
         except Exception as e:
             print(str(e))
@@ -145,6 +154,10 @@ class QiDataController:
                 while date <= end_month:
                     file_path = os.path.join(path, date.strftime('%Y%m'))
                     file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".day")
+                    if not os.path.exists(file_path):
+                        print('No such file:' + file_path)
+                        date = date + relativedelta(months=+1)
+                        continue
                     day_bar_steam = DayBarStream(market, instrument_id, file_path)
                     day_bar_steam.read(bar_series, pre_begin_date, trading_date)
                     date = date + relativedelta(months=+1)
@@ -163,6 +176,10 @@ class QiDataController:
                 while date <= end_month:
                     file_path = os.path.join(path, date.strftime('%Y%m'))
                     file_path = os.path.join(file_path, instrument_id.split('.')[0] + ".day")
+                    if not os.path.exists(file_path):
+                        print('No such file:' + file_path)
+                        date = date + relativedelta(months=+1)
+                        continue
                     day_bar_steam = DayBarStream(market, instrument_id, file_path)
                     day_bar_steam.read(bar_series, pre_begin_date, end_date)
                     date = date + relativedelta(months=+1)
@@ -409,7 +426,8 @@ class QiDataController:
         if len(bar_provider.bar_series) < max_length:
             trading_date = begin_trading_date
             count = 0
-            while count < 5:
+            count_max = int(math.ceil((max_length - len(bar_provider.bar_series)) * 3.0 / n_one_day_count))
+            while count < count_max:
                 count += 1
                 trading_date = TradingDayHelper.get_pre_trading_day(trading_date)
                 if bar_provider.bar_type == EnumBarType.second:

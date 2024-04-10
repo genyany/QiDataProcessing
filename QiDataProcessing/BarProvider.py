@@ -352,6 +352,6 @@ class BarProvider:
                 return 0
         else:
             # 收盘5秒内的tick都计算
-            if (current_date_time_slice.begin_time <= begin_time) & (end_time < (current_date_time_slice.end_time + datetime.timedelta(seconds=59))):
+            if (current_date_time_slice.begin_time <= begin_time) & (end_time < (current_date_time_slice.end_time + datetime.timedelta(seconds=128))):
                 return 0
         return 1

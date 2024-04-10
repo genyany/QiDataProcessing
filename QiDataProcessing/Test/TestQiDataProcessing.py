@@ -1,6 +1,9 @@
+import os
+import sys
 import time
 
 import pandas as pd
+from QiDataProcessing.BarProvider import BarProvider
 
 from QiDataProcessing.BaseBarHelper import BaseBarHelper
 from QiDataProcessing.Core.EnumMarket import EnumMarket
@@ -15,7 +18,7 @@ from QiDataProcessing.TradingFrame.YfTimeHelper import YfTimeHelper
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
 
-trading_day = datetime.datetime(2019, 10, 13)
+trading_day = datetime.datetime(2020, 10, 13)
 tick_path = "\\\\192.168.1.200\\MqData\\futuretick\\Future"
 min_path = "\\\\192.168.1.200\\MqData\\futuremin"
 day_path = "\\\\192.168.1.200\\MqData\\futureday"
@@ -27,7 +30,34 @@ qi_data_directory.future_tick_cache = tick_path
 qi_data_directory.future_min = min_path
 qi_data_directory.future_day = day_path
 
+instrument_id = 'j9999'
+begin_trading_date = datetime.datetime(2022, 12, 7)
+end_trading_date = datetime.datetime(2023, 2, 8)
+interval = 30
+bar_type = EnumBarType.minute
 qi_data_controller = QiDataController(qi_data_directory)
+bar_series = qi_data_controller.load_bar_series_by_date(EnumMarket.期货, instrument_id, interval, bar_type, begin_trading_date, end_trading_date)
+for bar in bar_series:
+    print(bar.to_string())
+
+# begin_date = datetime.datetime(2020, 1, 10)
+# end_date = datetime.datetime(2021, 1, 30)
+# t0 = time.time()
+# config_dir = os.path.join(sys.modules['ROOT_DIR'], 'Config')
+# instrument_manager = InstrumentManager()
+# instrument_manager.load(config_dir, EnumMarket.期货)
+# bar_provider = BarProvider()
+# bar_provider.create_bar_provider_by_date(instrument_manager, instrument_id, begin_date, end_date, interval, bar_type)
+# for bar in bar_series_min:
+#     bar_provider.add_bar(bar)
+#
+# bar_series = bar_provider.bar_series
+# for bar in bar_series:
+#     print(bar.to_string())
+# bar_s = filter(lambda x:x.trading_date==datetime.datetime(2020,12,30), bar_series)
+# for bar in bar_s:
+#     print(bar.to_string())
+# print(time.time()-t0)
 # instrument = qi_data_controller.instrument_manager['IC9999']
 # print(instrument)
 # interval = 3
@@ -73,16 +103,16 @@ qi_data_controller = QiDataController(qi_data_directory)
 #     index += 1
 #
 
-begin_trading_date = datetime.datetime(2016, 7, 11)
-end_trading_date = datetime.datetime(2016, 7, 11)
-instrument_id = "IC9999"
-interval = 5
-bar_type = EnumBarType.minute
-bar_series = qi_data_controller.load_bar_series_by_date(EnumMarket.期货, instrument_id, interval, bar_type, begin_trading_date, end_trading_date)
-index = 1
-for bar in bar_series:
-    print("["+instrument_id+"]"+str(index)+":"+bar.to_string()+','+str(bar.pre_close)+bar.end_time.strftime('%Y%m%d %H%M%S%f'))
-    index += 1
+# begin_trading_date = datetime.datetime(2016, 7, 11)
+# end_trading_date = datetime.datetime(2016, 7, 11)
+# instrument_id = "IC9999"
+# interval = 5
+# bar_type = EnumBarType.minute
+# bar_series = qi_data_controller.load_bar_series_by_date(EnumMarket.期货, instrument_id, interval, bar_type, begin_trading_date, end_trading_date)
+# index = 1
+# for bar in bar_series:
+#     print("[" + instrument_id + "]" + str(index) + ":" + bar.to_string() + ',' + str(bar.pre_close) + bar.end_time.strftime('%Y%m%d %H%M%S%f'))
+#     index += 1
 
 #
 # begin_trading_date = datetime.datetime(2017, 1, 1)
